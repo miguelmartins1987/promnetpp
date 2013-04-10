@@ -1,0 +1,2 @@
+Both PROMNeT++ itself and the corresponding plug-in for Eclipse are provided
+under the MIT License. See MIT-LICENSE.txt for more details.
