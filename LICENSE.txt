@@ -1,5 +1,5 @@
-Both PROMNeT++ itself and the corresponding plug-in for Eclipse are provided
-under the MIT License. See MIT-LICENSE.txt for more details.
+PROMNeT++ and the PROMNeT++ plug-in for Eclipse are, in both source and binary
+forms, provided under the MIT License. See MIT-LICENSE.txt for more details.
 
 Any or both of the above use components from the Apache Commons project
 (http://commons.apache.org/), in binary form, which are licensed under the
