@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            id="com.googlecode.promnetpp.eclipseplugin.contribution1"
+            nameFilter="*.pml"
+            objectClass="org.eclipse.core.resources.IFile">
+         <menu
+               label="PROMNeT++"
+               path="additions"
+               id="com.googlecode.promnetpp.eclipseplugin.menu1">
+            <separator
+                  name="group1">
+            </separator>
+         </menu>
+         <action
+               label="Translate to C++ code"
+               class="com.googlecode.promnetpp.eclipseplugin.popup.actions.TranslateAction"
+               menubarPath="com.googlecode.promnetpp.eclipseplugin.menu1/group1"
+               enablesFor="1"
+               id="com.googlecode.promnetpp.eclipseplugin.newAction">
+         </action>
+      </objectContribution>
+   </extension>
+
+</plugin>
