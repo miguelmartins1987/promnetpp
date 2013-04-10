@@ -1,0 +1,377 @@
+/*
+PROMELA grammar in JJTree
+Author: Miguel Martins (miguel.martins.gama@gmail.com)
+*/
+options {
+    DEBUG_LOOKAHEAD=false;
+    DEBUG_PARSER=false;
+    LOOKAHEAD=3;
+    NODE_CLASS="ASTNode";
+    STATIC=false;
+}
+
+PARSER_BEGIN(PROMELAParser)
+
+package promnetpp.parsing;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+
+public class PROMELAParser {
+    public static void main(String[] args) throws Exception {
+        BufferedReader standardInputReader = new BufferedReader(
+            new InputStreamReader(System.in));
+        PROMELAParser parser = new PROMELAParser(standardInputReader);
+        System.err.println("Waiting for your input.");
+        ASTNode rootNode = parser.Start();
+        rootNode.dump("");
+    }
+}
+
+PARSER_END(PROMELAParser)
+
+SKIP : {" " | "\t" | "\r" | "\n"}
+
+/* Comments */
+MORE : {
+    "/*": IN_MULTI_LINE_COMMENT
+}
+
+<IN_MULTI_LINE_COMMENT> MORE : {
+    < ~[] >
+}
+
+<IN_MULTI_LINE_COMMENT> TOKEN : {
+    <MULTI_LINE_COMMENT: "*/" > : DEFAULT
+}
+/* Comment handling ends here */
+
+/* Define directives*/
+MORE : {
+    "#define": IN_DEFINE
+}
+
+<IN_DEFINE> MORE : {
+    < ~["\n"] >
+}
+
+<IN_DEFINE> TOKEN : {
+    < DEFINE_DIRECTIVE : "\n" > : DEFAULT
+}
+/* End define directives*/
+
+TOKEN : {
+    < #LETTER: ["_","a"-"z","A"-"Z"] >
+    | < #DIGIT: ["0"-"9"] >
+    /* Keywords */
+    | < ATOMIC : "atomic" >
+    | < BIT : "bit">
+    | < BOOL : "bool">
+    | < BREAK : "break" >
+    | < BYTE : "byte">
+    | < CHAN : "chan" >
+    | < D_STEP : "d_step" >
+    | < DO : "do">
+    | < ELSE : "else" >
+    | < FALSE : "false" >
+    | < FI : "fi">
+    | < FOR : "for">
+    | < IF : "if">
+    | < INIT : "init" >
+    | < INLINE : "inline" >
+    | < INT : "int" >
+    | < MTYPE : "mtype" >
+    | < OD : "od" >
+    | < OF : "of" >
+    | < PROCTYPE : "proctype" >
+    | < RUN : "run" >
+    | < SHORT : "short" >
+    | < SKIP_ : "skip" >
+    | < TIMEOUT : "timeout" >
+    | < TRUE : "true" >
+    | < TYPEDEF : "typedef" >
+    /* Literals */
+    | < INTEGER_LITERAL: (<DIGIT>)+ >
+    | < STRING_LITERAL:
+      "\""
+      (   (~["\"","\\","\n","\r"])
+        | ("\\"
+            ( ["n","t","b","r","f","\\","'","\""]
+            | ["0"-"7"] ( ["0"-"7"] )?
+            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+            )
+          )
+      )*
+      "\""
+    >
+    /* Other */
+    | < IDENTIFIER: <LETTER> (<LETTER>|<DIGIT>)* >
+}
+
+ASTNode Start() : {}
+{
+    Specification() <EOF>
+    { return jjtThis; }
+}
+
+void Specification() : {}
+{
+    (Unit())+
+}
+
+void Unit() : {}
+{
+    Comment()
+    | DefineDirective()
+    | TypeDefinition()
+    | GlobalDeclaration()
+    | FunctionDefinition()
+    | ProcessDefinition()
+    | InitProcessDefinition()
+}
+
+void Comment() : {Token comment;}
+{
+    comment = <MULTI_LINE_COMMENT> { jjtThis.value = comment.image; }
+}
+
+void DefineDirective() : {Token directive;}
+{
+    directive = <DEFINE_DIRECTIVE> { jjtThis.value = directive.image; }
+}
+
+void TypeDefinition() : {Token identifier;}
+{
+    <TYPEDEF> identifier = <IDENTIFIER> { jjtThis.name = identifier.image; }
+    "{" SimpleDeclaration() (";" SimpleDeclaration())* [";"] "}" [";"]
+}
+
+void SimpleDeclaration() : {String typeName; Token identifier;
+Token arrayCapacity;}
+{
+    typeName = TypeName() identifier = <IDENTIFIER> 
+    { jjtThis.typeName = typeName; jjtThis.name = identifier.image; }
+    /* Is this an array declaration? */
+    [ "["
+    (arrayCapacity = <IDENTIFIER> | arrayCapacity = <INTEGER_LITERAL>)
+    "]" { jjtThis.putValue("isArray", true); jjtThis.putValue("arrayCapacity",
+    arrayCapacity.image); }
+    ]
+}
+
+void MultiDeclaration() : {}
+{
+    TypeName() <IDENTIFIER> ("," <IDENTIFIER>)+
+}
+
+String TypeName() : {Token identifier;}
+{
+    <BIT> { return "bit"; }
+    | <BOOL> { return "bool"; }
+    | <BYTE> { return "byte"; }
+    | <CHAN> { return "chan"; }
+    | <INT> { return "int"; }
+    | <MTYPE> { return "mtype"; }
+    | <SHORT> { return "short"; }
+    | identifier = <IDENTIFIER> { return identifier.image; }
+}
+
+void GlobalDeclaration() : {}
+{
+    SimpleDeclaration() [ "=" (Expression() | ChannelInitialization()) ] ";"
+}
+
+void ChannelInitialization() : {}
+{
+    "[" (<IDENTIFIER> | <INTEGER_LITERAL>) "]" <OF>
+    "{" TypeName() ("," TypeName())* "}"
+}
+
+void FunctionDefinition() : {}
+{
+    <INLINE> <IDENTIFIER> "(" [FunctionParameters()] ")"
+    "{" InstructionList() "}"
+}
+
+void FunctionParameters() : {}
+{
+    <IDENTIFIER> ("," <IDENTIFIER>)*
+}
+
+void InstructionList() : {}
+{
+    (Instruction())+
+}
+
+void Instruction() : {}
+{
+    NonBlockInstruction() [("->" | ";")]
+    | BlockInstruction()
+}
+
+void NonBlockInstruction() : {}
+{
+    /* variable++ and variable-- */
+    LOOKAHEAD(Increment()) Increment()
+    | LOOKAHEAD(Decrement()) Decrement()
+    /* variable = some expression */
+    | LOOKAHEAD(Assignment()) Assignment()
+    /* channel ! arguments and channel ? arguments */
+    | LOOKAHEAD(SendStatement()) SendStatement()
+    | LOOKAHEAD(ReceiveStatement()) ReceiveStatement()
+    /* declarations */
+    | LOOKAHEAD(MultiDeclaration()) MultiDeclaration()
+    | LOOKAHEAD(SimpleDeclaration()) SimpleDeclaration()
+    /* simple expressions */
+    | LOOKAHEAD(Expression()) Expression()
+    /* other */
+    | Break()
+    | DoLoop()
+    | Else()
+    | ForLoop()
+    | If()
+    | Run()
+    | Skip()
+}
+
+void SendStatement() : {}
+{
+    Variable() "!" Expression() ("," Expression())*
+}
+
+void ReceiveStatement() : {}
+{
+    Variable() "?" Variable() ("," Variable())*
+}
+
+void Increment() : {}
+{
+    Variable() "++"
+}
+
+void Decrement() : {}
+{
+    Variable() "--"
+}
+
+void Assignment() : {}
+{
+    Variable() "=" Expression()
+}
+
+void Break() : {}
+{
+    <BREAK>
+}
+
+void DoLoop() : {}
+{
+    <DO> ("::" InstructionList())+ <OD>
+}
+
+void ForLoop() : {}
+{
+    <FOR> "(" Variable() ":" Expression() ".." Expression() ")"
+    "{" InstructionList() "}"
+}
+
+void If() : {}
+{
+    <IF> ("::" InstructionList())+ <FI>
+}
+
+void Else() : {}
+{
+    <ELSE>
+}
+
+void Run() : {}
+{
+    <RUN> <IDENTIFIER> "(" [Expression() ("," Expression())*] ")"
+}
+
+void Skip() : {}
+{
+    <SKIP_>
+}
+
+void Variable() : {}
+{
+    <IDENTIFIER> [ "[" Expression() "]" ] [ "." Variable() ]
+}
+
+void Expression() : {}
+{
+    Term() (
+        "+" Term()
+        | "-" Term()
+        /* Comparative */
+        | ">" Term()
+        | ">=" Term()
+        | "<" Term()
+        | "<=" Term()
+        | "==" Term()
+        | "!=" Term()
+        /* Logical */
+        | "&&" Term()
+        | "||" Term()
+    )*
+}
+
+void Term() : {}
+{
+    Factor() ("*" Factor() | "/" Factor())*
+}
+
+void Factor() : {}
+{
+    "(" Expression() ")"
+    | <INTEGER_LITERAL> | <STRING_LITERAL>
+    | <TRUE> | <FALSE>
+    | <TIMEOUT>
+    
+    | LOOKAHEAD(<IDENTIFIER> "(") FunctionCall()
+    | Variable()
+}
+
+void FunctionCall() : {}
+{
+    <IDENTIFIER> 
+    /* Handle the select function as a special case */
+    (LOOKAHEAD({token.image.equals("select")}) "(" Variable() ":" Expression()
+    ".." Expression() ")"
+    /* Every other function should be the same */
+    | "(" [FunctionCallParameters()] ")")
+}
+
+void FunctionCallParameters() : {}
+{
+    Expression() ("," Expression())*
+}
+
+void BlockInstruction() : {}
+{
+    AtomicBlock()
+    | DStepBlock()
+}
+
+void AtomicBlock() : {}
+{
+    <ATOMIC> "{" InstructionList() "}"
+}
+
+void DStepBlock() : {}
+{
+    <D_STEP> "{" InstructionList() "}"
+}
+
+void ProcessDefinition() : {}
+{
+    <PROCTYPE> <IDENTIFIER> "(" /* ProcessParameters() */ ")"
+    "{" InstructionList() "}"
+}
+
+void InitProcessDefinition() : {}
+{
+    <INIT> "{" InstructionList() "}"
+}
