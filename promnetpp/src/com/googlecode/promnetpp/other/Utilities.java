@@ -29,6 +29,13 @@ import org.xml.sax.SAXException;
  */
 public class Utilities {
 
+    /**
+     * Creates a directory given a directory name. If the corresponding
+     * directory already exists, nothing happens.
+     *
+     * @param directoryName the name of the directory
+     * @see File#mkdir() 
+     */
     public static void makeDirectory(String directoryName) {
         File directory = new File(directoryName);
         if (!directory.exists()) {
@@ -37,6 +44,14 @@ public class Utilities {
         }
     }
 
+    /**
+     * Builds a <code>Document</code> object from a file. Exceptions that may
+     * occur are not thrown, but logged instead.
+     * 
+     * @param file the file containing an XML document
+     * @return the XML document, as a <code>Document</code> object, if
+     * successful. Otherwise, <code>null</code> is returned.
+     */
     public static Document getDocumentFromFile(File file) {
         try {
             DocumentBuilderFactory documentBuilderFactory =
@@ -57,6 +72,19 @@ public class Utilities {
         return null;
     }
 
+    /**
+     * Writes a string to a writer, prefixed by a certain amount of space
+     * characters, referred to as "indentation". Used to generate indented
+     * source code files.
+     * 
+     * @param writer the writer object where the string is written to; typically
+     * either a StringWriter or a FileWriter
+     * @param message the string to be written
+     * @param indentation the indentation of the string
+     * 
+     * @throws IOException If an I/O error occurs
+     * @see Writer#write(java.lang.String) 
+     */
     public static void writeWithIndentation(Writer writer, String message,
             int indentation) throws IOException {
         String indentationString = StringUtils.repeat(" ", indentation);
