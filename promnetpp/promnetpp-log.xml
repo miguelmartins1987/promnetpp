@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE log SYSTEM "logger.dtd">
+<log>
+<record>
+  <date>2013-04-15T20:03:55</date>
+  <millis>1366052635641</millis>
+  <sequence>0</sequence>
+  <logger>com.googlecode.promnetpp.main.Main</logger>
+  <level>INFO</level>
+  <class>com.googlecode.promnetpp.main.Main</class>
+  <method>main</method>
+  <thread>1</thread>
+  <message>PROMNeT++ home set to C:\Users\Miguel Martins\Documents\NetBeansProjects\promnetpp</message>
+</record>
+<record>
+  <date>2013-04-15T20:03:55</date>
+  <millis>1366052635649</millis>
+  <sequence>1</sequence>
+  <logger>com.googlecode.promnetpp.main.Main</logger>
+  <level>INFO</level>
+  <class>com.googlecode.promnetpp.main.Main</class>
+  <method>main</method>
+  <thread>1</thread>
+  <message>Running PROMNeT++ from C:\Users\Miguel Martins\Documents\NetBeansProjects\promnetpp</message>
+</record>
+<record>
+  <date>2013-04-15T20:03:55</date>
+  <millis>1366052635649</millis>
+  <sequence>2</sequence>
+  <logger>com.googlecode.promnetpp.main.Main</logger>
+  <level>INFO</level>
+  <class>com.googlecode.promnetpp.main.Main</class>
+  <method>main</method>
+  <thread>1</thread>
+  <message>Loading configuration from file default-configuration-alt.xml</message>
+</record>
+<record>
+  <date>2013-04-15T20:03:55</date>
+  <millis>1366052635681</millis>
+  <sequence>3</sequence>
+  <logger>com.googlecode.promnetpp.options.Options</logger>
+  <level>INFO</level>
+  <class>com.googlecode.promnetpp.options.Options</class>
+  <method>handleSimpleOption</method>
+  <thread>1</thread>
+  <message>Will output files to directory output</message>
+</record>
+<record>
+  <date>2013-04-15T20:03:55</date>
+  <millis>1366052635720</millis>
+  <sequence>4</sequence>
+  <logger>com.googlecode.promnetpp.translation.StandardTranslator</logger>
+  <level>INFO</level>
+  <class>com.googlecode.promnetpp.translation.StandardTranslator</class>
+  <method>init</method>
+  <thread>1</thread>
+  <message>Translation process ready. Output directory: output</message>
+</record>
+<record>
+  <date>2013-04-15T20:03:55</date>
+  <millis>1366052635721</millis>
+  <sequence>5</sequence>
+  <logger>com.googlecode.promnetpp.translation.StandardTranslator</logger>
+  <level>INFO</level>
+  <class>com.googlecode.promnetpp.translation.StandardTranslator</class>
+  <method>doFirstPassOnAST</method>
+  <thread>1</thread>
+  <message>Added a function named compute_message</message>
+</record>
+<record>
+  <date>2013-04-15T20:03:55</date>
+  <millis>1366052635721</millis>
+  <sequence>6</sequence>
+  <logger>com.googlecode.promnetpp.translation.StandardTranslator</logger>
+  <level>INFO</level>
+  <class>com.googlecode.promnetpp.translation.StandardTranslator</class>
+  <method>doFirstPassOnAST</method>
+  <thread>1</thread>
+  <message>Added a function named state_transition</message>
+</record>
+<record>
+  <date>2013-04-15T20:03:55</date>
+  <millis>1366052635721</millis>
+  <sequence>7</sequence>
+  <logger>com.googlecode.promnetpp.translation.StandardTranslator</logger>
+  <level>INFO</level>
+  <class>com.googlecode.promnetpp.translation.StandardTranslator</class>
+  <method>doFirstPassOnAST</method>
+  <thread>1</thread>
+  <message>Added a function named system_init</message>
+</record>
+<record>
+  <date>2013-04-15T20:03:55</date>
+  <millis>1366052635721</millis>
+  <sequence>8</sequence>
+  <logger>com.googlecode.promnetpp.translation.StandardTranslator</logger>
+  <level>INFO</level>
+  <class>com.googlecode.promnetpp.translation.StandardTranslator</class>
+  <method>doFirstPassOnAST</method>
+  <thread>1</thread>
+  <message>Added a function named system_every_round</message>
+</record>
+<record>
+  <date>2013-04-15T20:03:55</date>
+  <millis>1366052635721</millis>
+  <sequence>9</sequence>
+  <logger>com.googlecode.promnetpp.translation.StandardTranslator</logger>
+  <level>INFO</level>
+  <class>com.googlecode.promnetpp.translation.StandardTranslator</class>
+  <method>doFirstPassOnAST</method>
+  <thread>1</thread>
+  <message>Added a function named begin_round</message>
+</record>
+<record>
+  <date>2013-04-15T20:03:55</date>
+  <millis>1366052635722</millis>
+  <sequence>10</sequence>
+  <logger>com.googlecode.promnetpp.translation.StandardTranslator</logger>
+  <level>INFO</level>
+  <class>com.googlecode.promnetpp.translation.StandardTranslator</class>
+  <method>doFirstPassOnAST</method>
+  <thread>1</thread>
+  <message>Added a function named end_round</message>
+</record>
+<record>
+  <date>2013-04-15T20:03:55</date>
+  <millis>1366052635722</millis>
+  <sequence>11</sequence>
+  <logger>com.googlecode.promnetpp.translation.StandardTranslator</logger>
+  <level>INFO</level>
+  <class>com.googlecode.promnetpp.translation.StandardTranslator</class>
+  <method>doFirstPassOnAST</method>
+  <thread>1</thread>
+  <message>Added a function named send_message_to_all_processes</message>
+</record>
+<record>
+  <date>2013-04-15T20:03:55</date>
+  <millis>1366052635722</millis>
+  <sequence>12</sequence>
+  <logger>com.googlecode.promnetpp.translation.StandardTranslator</logger>
+  <level>INFO</level>
+  <class>com.googlecode.promnetpp.translation.StandardTranslator</class>
+  <method>doFirstPassOnAST</method>
+  <thread>1</thread>
+  <message>Added a function named wait_to_receive</message>
+</record>
+<record>
+  <date>2013-04-15T20:03:55</date>
+  <millis>1366052635722</millis>
+  <sequence>13</sequence>
+  <logger>com.googlecode.promnetpp.translation.StandardTranslator</logger>
+  <level>INFO</level>
+  <class>com.googlecode.promnetpp.translation.StandardTranslator</class>
+  <method>doFirstPassOnAST</method>
+  <thread>1</thread>
+  <message>Added a function named receive</message>
+</record>
+<record>
+  <date>2013-04-15T20:03:55</date>
+  <millis>1366052635724</millis>
+  <sequence>14</sequence>
+  <logger>com.googlecode.promnetpp.translation.StandardTranslator</logger>
+  <level>INFO</level>
+  <class>com.googlecode.promnetpp.translation.StandardTranslator</class>
+  <method>handleComment</method>
+  <thread>1</thread>
+  <message>Found an annotated comment: @USES_TEMPLATE(template_name="round_based_protocol_generic")</message>
+</record>
+<record>
+  <date>2013-04-15T20:03:55</date>
+  <millis>1366052635725</millis>
+  <sequence>15</sequence>
+  <logger>com.googlecode.promnetpp.translation.StandardTranslator</logger>
+  <level>INFO</level>
+  <class>com.googlecode.promnetpp.translation.StandardTranslator</class>
+  <method>handleAnnotatedComment</method>
+  <thread>1</thread>
+  <message>Using template round_based_protocol_generic</message>
+</record>
+<record>
+  <date>2013-04-15T20:03:55</date>
+  <millis>1366052635727</millis>
+  <sequence>16</sequence>
+  <logger>com.googlecode.promnetpp.translation.StandardTranslator</logger>
+  <level>INFO</level>
+  <class>com.googlecode.promnetpp.translation.StandardTranslator</class>
+  <method>handleDefineDirective</method>
+  <thread>1</thread>
+  <message>Handling define directive #define NUMBER_OF_PROCESSES 4
+</message>
+</record>
+<record>
+  <date>2013-04-15T20:03:55</date>
+  <millis>1366052635727</millis>
+  <sequence>17</sequence>
+  <logger>com.googlecode.promnetpp.translation.StandardTranslator</logger>
+  <level>INFO</level>
+  <class>com.googlecode.promnetpp.translation.StandardTranslator</class>
+  <method>handleDefineDirective</method>
+  <thread>1</thread>
+  <message>RoundBasedProtocolGeneric will have 4 participants.</message>
+</record>
+<record>
+  <date>2013-04-15T20:03:55</date>
+  <millis>1366052635736</millis>
+  <sequence>18</sequence>
+  <logger>com.googlecode.promnetpp.translation.StandardTranslator</logger>
+  <level>INFO</level>
+  <class>com.googlecode.promnetpp.translation.StandardTranslator</class>
+  <method>translateTypeDefinition</method>
+  <thread>1</thread>
+  <message>Found type definition (typeName=message)</message>
+</record>
+<record>
+  <date>2013-04-15T20:03:55</date>
+  <millis>1366052635742</millis>
+  <sequence>19</sequence>
+  <logger>com.googlecode.promnetpp.translation.StandardTranslator</logger>
+  <level>INFO</level>
+  <class>com.googlecode.promnetpp.translation.StandardTranslator</class>
+  <method>translateTypeDefinition</method>
+  <thread>1</thread>
+  <message>Found type definition (typeName=process_state)</message>
+</record>
+<record>
+  <date>2013-04-15T20:03:55</date>
+  <millis>1366052635742</millis>
+  <sequence>20</sequence>
+  <logger>com.googlecode.promnetpp.translation.StandardTranslator</logger>
+  <level>INFO</level>
+  <class>com.googlecode.promnetpp.translation.StandardTranslator</class>
+  <method>handleDefineDirective</method>
+  <thread>1</thread>
+  <message>Handling define directive #define my_state state[_pid-1]
+</message>
+</record>
+<record>
+  <date>2013-04-15T20:03:55</date>
+  <millis>1366052635743</millis>
+  <sequence>21</sequence>
+  <logger>com.googlecode.promnetpp.translation.StandardTranslator</logger>
+  <level>INFO</level>
+  <class>com.googlecode.promnetpp.translation.StandardTranslator</class>
+  <method>handleComment</method>
+  <thread>1</thread>
+  <message>Found an annotated comment: @BEGIN_TEMPLATE_BLOCK(block_name="generic_part")</message>
+</record>
+<record>
+  <date>2013-04-15T20:03:55</date>
+  <millis>1366052635743</millis>
+  <sequence>22</sequence>
+  <logger>com.googlecode.promnetpp.translation.StandardTranslator</logger>
+  <level>INFO</level>
+  <class>com.googlecode.promnetpp.translation.StandardTranslator</class>
+  <method>handleDefineDirective</method>
+  <thread>1</thread>
+  <message>Handling define directive #define predecessor(process, n) ((process - 1 + n) % n)
+</message>
+</record>
+<record>
+  <date>2013-04-15T20:03:55</date>
+  <millis>1366052635743</millis>
+  <sequence>23</sequence>
+  <logger>com.googlecode.promnetpp.translation.StandardTranslator</logger>
+  <level>INFO</level>
+  <class>com.googlecode.promnetpp.translation.StandardTranslator</class>
+  <method>handleDefineDirective</method>
+  <thread>1</thread>
+  <message>Handling define directive #define successor(process, n) ((process + 1) % n)
+</message>
+</record>
+<record>
+  <date>2013-04-15T20:03:55</date>
+  <millis>1366052635743</millis>
+  <sequence>24</sequence>
+  <logger>com.googlecode.promnetpp.translation.StandardTranslator</logger>
+  <level>INFO</level>
+  <class>com.googlecode.promnetpp.translation.StandardTranslator</class>
+  <method>translateProcessDefinition</method>
+  <thread>1</thread>
+  <message>Process Process has a variable of type _message named message.</message>
+</record>
+<record>
+  <date>2013-04-15T20:03:55</date>
+  <millis>1366052635744</millis>
+  <sequence>25</sequence>
+  <logger>com.googlecode.promnetpp.translation.StandardTranslator</logger>
+  <level>INFO</level>
+  <class>com.googlecode.promnetpp.translation.StandardTranslator</class>
+  <method>translateProcessDefinition</method>
+  <thread>1</thread>
+  <message>Process Process has a variable of type temp named bool.</message>
+</record>
+<record>
+  <date>2013-04-15T20:03:55</date>
+  <millis>1366052635744</millis>
+  <sequence>26</sequence>
+  <logger>com.googlecode.promnetpp.translation.StandardTranslator</logger>
+  <level>INFO</level>
+  <class>com.googlecode.promnetpp.translation.StandardTranslator</class>
+  <method>handleComment</method>
+  <thread>1</thread>
+  <message>Found an annotated comment: @END_TEMPLATE_BLOCK</message>
+</record>
+</log>

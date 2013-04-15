@@ -9,47 +9,31 @@
  */
 package com.googlecode.promnetpp.translation.nodes;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
  * @author Miguel Martins
  */
 public class Process {
-
     private String name;
-    private boolean active;
-    private List<String> inputGates;
+    private Map<String, String> variables;
 
-    public Process(String name, boolean active) {
+    public Process(String name) {
         this.name = name;
-        this.active = active;
-        this.inputGates = new ArrayList<String>();
+        variables = new HashMap<String, String>();
     }
 
     public String getName() {
         return name;
     }
-
-    public boolean isActive() {
-        return active;
-    }
-
-    public List<String> getInputGates() {
-        return inputGates;
-    }
     
-    public String getInitInputGate() {
-        for (String gate : inputGates) {
-            if (gate.startsWith("init_")) {
-                return gate;
-            }
-        }
-        return null;
+    public void addVariable(String type, String name) {
+        variables.put(name, type);
     }
-    
-    public void addInputGate(String gate) {
-        inputGates.add(gate);
+
+    public Map<String, String> getVariables() {
+        return variables;
     }
 }

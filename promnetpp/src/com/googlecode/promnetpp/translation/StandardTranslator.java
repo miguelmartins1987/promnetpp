@@ -10,9 +10,11 @@
 package com.googlecode.promnetpp.translation;
 
 import com.googlecode.promnetpp.options.Options;
+import com.googlecode.promnetpp.other.StringWriterCollection;
 import com.googlecode.promnetpp.other.Utilities;
 import com.googlecode.promnetpp.parsing.ASTNode;
 import com.googlecode.promnetpp.parsing.AbstractSyntaxTree;
+import com.googlecode.promnetpp.translation.nodes.Function;
 import com.googlecode.promnetpp.translation.templates.RoundBasedProtocolGeneric;
 import com.googlecode.promnetpp.translation.templates.Template;
 import java.io.File;
@@ -20,6 +22,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.text.MessageFormat;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,27 +37,18 @@ import org.apache.commons.io.FileUtils;
  */
 public class StandardTranslator implements Translator {
 
-    /**
-     * Indentation settings
-     */
+    //Indentation settings
     private static final int SPACES_PER_TAB = 4;
     private int currentIndentationLevel = 0;
-    /**
-     * Whether or not there's an implicit init process
-     */
-    private boolean implicitInit = true;
     /**
      * The template to be used, if any
      */
     private Template template;
-    /**
-     * String writers for various purposes (one of them being type definitions)
-     */
+    //String writers for various purposes (one of them being type definitions)
     private StringWriter typeDefinitions;
     private StringWriter globalDefinitions;
-    /**
-     * Other
-     */
+    //Other
+    private Map<String, Function> functions;
     private Map<String, String> macros, nonMacros;
 
     @Override
@@ -62,12 +56,15 @@ public class StandardTranslator implements Translator {
         if (!(Options.outputDirectory.equals("."))) {
             Utilities.makeDirectory(Options.outputDirectory);
         }
+        //Initialize writers
         typeDefinitions = new StringWriter();
         globalDefinitions = new StringWriter();
-
+        //Initialize function map
+        functions = new HashMap<String, Function>();
+        //Initialize other members
         macros = new HashMap<String, String>();
         nonMacros = new HashMap<String, String>();
-        
+
         Logger.getLogger(StandardTranslator.class.getName()).log(Level.INFO,
                 "Translation process ready. Output directory: {0}",
                 Options.outputDirectory);
@@ -100,7 +97,7 @@ public class StandardTranslator implements Translator {
                     Level.SEVERE, null, ex);
         }
     }
-    
+
     private void copyFiles() throws IOException {
         //omnetpp.ini
         FileUtils.copyFile(new File(System.getProperty("promnetpp.home")
@@ -115,7 +112,8 @@ public class StandardTranslator implements Translator {
                 new File(Options.outputDirectory + "/process_interface.cc"));
         //Template files
         if (template != null) {
-            template.copyFiles();
+            template.copyStaticFiles();
+            template.writeDynamicFiles();
         }
     }
 
@@ -129,6 +127,8 @@ public class StandardTranslator implements Translator {
 
     @Override
     public void translate(AbstractSyntaxTree abstractSyntaxTree) {
+        doFirstPassOnAST(abstractSyntaxTree);
+        //Second pass
         ASTNode rootNode = abstractSyntaxTree.getRootNode();
         ASTNode specification = (ASTNode) rootNode.jjtGetChild(0);
         translateSpecification(specification);
@@ -162,6 +162,12 @@ public class StandardTranslator implements Translator {
             } //Global declarations
             else if (currentChildType.equals("GlobalDeclaration")) {
                 translateGlobalDeclaration(currentChild);
+            } //Function definitions
+            else if (currentChildType.equals("FunctionDefinition")) {
+                String functionName = currentChild.getValueAsString(
+                        "functionName");
+                Function function = functions.get(functionName);
+                translateFunction(function);
             } //Process definitions
             else if (currentChildType.equals("ProcessDefinition")) {
                 translateProcessDefinition(currentChild);
@@ -258,10 +264,32 @@ public class StandardTranslator implements Translator {
         }
     }
 
-    private void translateGlobalDeclaration(ASTNode currentChild) {
+    private void translateGlobalDeclaration(ASTNode globalDeclaration) {
     }
 
-    private void translateProcessDefinition(ASTNode currentChild) {
+    private void translateProcessDefinition(ASTNode processDefinition) {
+        String processName = processDefinition.getValueAsString("processName");
+        ASTNode instructionList = (ASTNode) processDefinition.jjtGetChild(0);
+        for (int i = 0; i < instructionList.jjtGetNumChildren(); ++i) {
+            ASTNode instruction = (ASTNode) instructionList.jjtGetChild(i);
+            instruction = instruction.getFirstChild();
+            //NonBlockInstruction
+            if (instruction.getNodeName().equals("NonBlockInstruction")) {
+                ASTNode nonBlockInstruction = instruction.getFirstChild();
+                //SimpleDeclaration
+                if (nonBlockInstruction.getNodeName().equals(
+                        "SimpleDeclaration")) {
+                    String variableName = nonBlockInstruction.getName();
+                    String variableType = nonBlockInstruction.getTypeName();
+                    Logger.getLogger(StandardTranslator.class.getName()).log(
+                            Level.INFO, "Process {0} has a variable of type {1}"
+                            + " named {2}.", new Object[]{processName,
+                                variableName, variableType});
+                }
+            } //BlockInstruction
+            else if (instruction.getNodeName().equals("BlockInstruction")) {
+            }
+        }
     }
 
     private void handleAnnotatedComment(String comment) {
@@ -284,5 +312,71 @@ public class StandardTranslator implements Translator {
                 }
             }
         }
+    }
+
+    private void doFirstPassOnAST(AbstractSyntaxTree abstractSyntaxTree) {
+        ASTNode rootNode = abstractSyntaxTree.getRootNode();
+        ASTNode specification = (ASTNode) rootNode.jjtGetChild(0);
+        ASTNode unit, unitChild;
+        String unitType;
+        for (int i = 0; i < specification.jjtGetNumChildren(); ++i) {
+            unit = (ASTNode) specification.jjtGetChild(i);
+            for (int j = 0; j < unit.jjtGetNumChildren(); ++j) {
+                unitChild = (ASTNode) unit.jjtGetChild(j);
+                unitType = unitChild.getNodeName();
+                //Add any function definitions to the function map
+                if (unitType.equals("FunctionDefinition")) {
+                    String functionName = unitChild.getValueAsString(
+                            "functionName");
+                    Function function = new Function(functionName);
+                    ASTNode parameters = null, instructions;
+                    //Functions with no parameters
+                    if (unitChild.jjtGetNumChildren() == 1) {
+                        instructions = (ASTNode) unitChild.jjtGetChild(0);
+                    } //Functions with parameters
+                    else {
+                        parameters = (ASTNode) unitChild.jjtGetChild(0);
+                        instructions = (ASTNode) unitChild.jjtGetChild(0);
+                    }
+                    function.setParameters(parameters);
+                    function.setInstructions(instructions);
+                    functions.put(functionName, function);
+                    Logger.getLogger(StandardTranslator.class.getName()).log(
+                            Level.INFO, "Added a function named {0}",
+                            functionName);
+                }
+                //Search inside process definitions (including init process)
+                if (unitType.equals("ProcessDefinition")) {
+                    String processName = unitChild.getValueAsString(
+                            "processName");
+                    setFunctionCallers(processName, unitChild);
+                } else if (unitType.equals("InitProcessDefinition")) {
+                    setFunctionCallers("init", unitChild);
+                }
+            }
+        }
+    }
+
+    private void setFunctionCallers(String processName, ASTNode processNode) {
+        List<String> calledFunctions = Utilities.searchForFunctionCalls(
+                processNode);
+        for (String functionName : calledFunctions) {
+            /*
+             * Ignore printf and select, as they're not defined by
+             * the user
+             */
+            if (!(functionName.equals("printf")
+                    || functionName.equals("select"))) {
+                Function function = functions.get(functionName);
+                function.addCaller(processName);
+                //System.out.println(processName + " calls " + functionName);
+            }
+        }
+    }
+
+    private void translateFunction(Function function) {
+        ASTNode instructions = function.getInstructions();
+        assert instructions != null : "Function " + function.getName() + " has"
+                + " no instructions!";
     }
 }
