@@ -9,9 +9,12 @@
  */
 package com.googlecode.promnetpp.other;
 
+import com.googlecode.promnetpp.parsing.ASTNode;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
@@ -95,5 +98,19 @@ public class Utilities {
         }
         writer.write(indentationString);
         writer.write(message);
+    }
+
+    public static List<String> searchForFunctionCalls(ASTNode node) {
+        ASTNode child;
+        List<String> functionNames = new ArrayList<String>();
+        for (int i = 0; i < node.jjtGetNumChildren(); ++i) {
+            child = (ASTNode) node.jjtGetChild(i);
+            if (child.getNodeName().equals("FunctionCall")) {
+                functionNames.add(child.getValueAsString("functionName"));
+            } else {
+                functionNames.addAll(searchForFunctionCalls(child));
+            }
+        }
+        return functionNames;
     }
 }

@@ -257,4 +257,12 @@ public class ASTNode extends SimpleNode {
         hash = 29 * hash + (this.values != null ? this.values.hashCode() : 0);
         return hash;
     }
+    
+    public boolean hasSingleChild() {
+        return jjtGetNumChildren() == 1;
+    }
+    
+    public ASTNode getFirstChild() {
+        return (ASTNode) jjtGetChild(0);
+    }
 }

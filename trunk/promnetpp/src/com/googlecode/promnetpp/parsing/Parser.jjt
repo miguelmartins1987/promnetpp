@@ -193,9 +193,11 @@ void ChannelInitialization() : {}
     "{" TypeName() ("," TypeName())* "}"
 }
 
-void FunctionDefinition() : {}
+void FunctionDefinition() : {Token functionName;}
 {
-    <INLINE> <IDENTIFIER> "(" [FunctionParameters()] ")"
+    <INLINE> functionName = <IDENTIFIER>
+    { jjtThis.putValue("functionName", functionName.image); }
+    "(" [FunctionParameters()] ")"
     "{" InstructionList() "}"
 }
 
@@ -340,9 +342,10 @@ void Factor() : {}
     | Variable()
 }
 
-void FunctionCall() : {}
+void FunctionCall() : {Token functionName;}
 {
-    <IDENTIFIER> 
+    functionName = <IDENTIFIER>
+    { jjtThis.putValue("functionName", functionName.image); }
     /* Handle the select function as a special case */
     (LOOKAHEAD({token.image.equals("select")}) "(" Variable() ":" Expression()
     ".." Expression() ")"
@@ -371,9 +374,11 @@ void DStepBlock() : {}
     <D_STEP> "{" InstructionList() "}"
 }
 
-void ProcessDefinition() : {}
+void ProcessDefinition() : {Token processName;}
 {
-    <PROCTYPE> <IDENTIFIER> "(" /* ProcessParameters() */ ")"
+    <PROCTYPE> processName = <IDENTIFIER>
+    { jjtThis.putValue("processName", processName.image); }
+    "(" /* ProcessParameters() */ ")"
     "{" InstructionList() "}"
 }
 

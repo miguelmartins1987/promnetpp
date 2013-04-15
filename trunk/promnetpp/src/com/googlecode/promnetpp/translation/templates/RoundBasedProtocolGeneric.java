@@ -19,8 +19,10 @@ public class RoundBasedProtocolGeneric extends Template {
     public RoundBasedProtocolGeneric() {
         super();
         name = "round_based_protocol_generic";
-        fileNames.add("init_process.h");
-        fileNames.add("init_process.cc");
+        addStaticFile("init_process.h");
+        addStaticFile("init_process.cc");
+        addDynamicFile("_process.h");
+        addDynamicFile("_process.cc");
     }
 
     public int getNumberOfParticipants() {
