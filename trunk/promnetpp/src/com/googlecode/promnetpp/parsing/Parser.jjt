@@ -172,14 +172,15 @@ void MultiDeclaration() : {}
 
 String TypeName() : {Token identifier;}
 {
-    <BIT> { return "bit"; }
-    | <BOOL> { return "bool"; }
-    | <BYTE> { return "byte"; }
-    | <CHAN> { return "chan"; }
-    | <INT> { return "int"; }
-    | <MTYPE> { return "mtype"; }
-    | <SHORT> { return "short"; }
-    | identifier = <IDENTIFIER> { return identifier.image; }
+    <BIT> { jjtThis.name = "bit"; return "bit"; }
+    | <BOOL> { jjtThis.name = "bool"; return "bool"; }
+    | <BYTE> { jjtThis.name = "byte"; return "byte"; }
+    | <CHAN> { jjtThis.name = "chan"; return "chan"; }
+    | <INT> { jjtThis.name = "int"; return "int"; }
+    | <MTYPE> { jjtThis.name = "mtype"; return "mtype"; }
+    | <SHORT> { jjtThis.name = "short"; return "short"; }
+    | identifier = <IDENTIFIER> { jjtThis.name = identifier.image;
+        return identifier.image; }
 }
 
 void GlobalDeclaration() : {}
@@ -187,10 +188,11 @@ void GlobalDeclaration() : {}
     SimpleDeclaration() [ "=" (Expression() | ChannelInitialization()) ] ";"
 }
 
-void ChannelInitialization() : {}
+void ChannelInitialization() : {Token capacity;}
 {
-    "[" (<IDENTIFIER> | <INTEGER_LITERAL>) "]" <OF>
-    "{" TypeName() ("," TypeName())* "}"
+    "[" (capacity = <IDENTIFIER> | capacity = <INTEGER_LITERAL>) "]"
+    { jjtThis.putValue("capacity", capacity.image); }
+    <OF> "{" TypeName() ("," TypeName())* "}"
 }
 
 void FunctionDefinition() : {Token functionName;}

@@ -10,14 +10,16 @@
 package com.googlecode.promnetpp.translation;
 
 import com.googlecode.promnetpp.options.Options;
-import com.googlecode.promnetpp.other.StringWriterCollection;
 import com.googlecode.promnetpp.other.Utilities;
 import com.googlecode.promnetpp.parsing.ASTNode;
 import com.googlecode.promnetpp.parsing.AbstractSyntaxTree;
+import com.googlecode.promnetpp.translation.nodes.Channel;
 import com.googlecode.promnetpp.translation.nodes.Function;
+import com.googlecode.promnetpp.translation.nodes.Process;
 import com.googlecode.promnetpp.translation.templates.RoundBasedProtocolGeneric;
 import com.googlecode.promnetpp.translation.templates.Template;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.text.MessageFormat;
@@ -44,9 +46,13 @@ public class StandardTranslator implements Translator {
      * The template to be used, if any
      */
     private Template template;
+    //Process collection (excluding init)
+    private Map<String, Process> processes;
+    //Init process
+    private Process initProcess;
     //String writers for various purposes (one of them being type definitions)
     private StringWriter typeDefinitions;
-    private StringWriter globalDefinitions;
+    private StringWriter globalDeclarations, globalDefinitions;
     //Other
     private Map<String, Function> functions;
     private Map<String, String> macros, nonMacros;
@@ -58,12 +64,15 @@ public class StandardTranslator implements Translator {
         }
         //Initialize writers
         typeDefinitions = new StringWriter();
+        globalDeclarations = new StringWriter();
         globalDefinitions = new StringWriter();
-        //Initialize function map
+        //Initialize init process
+        initProcess = new Process("init");
+        //Initialize the various hash maps
         functions = new HashMap<String, Function>();
-        //Initialize other members
         macros = new HashMap<String, String>();
         nonMacros = new HashMap<String, String>();
+        processes = new HashMap<String, Process>();
 
         Logger.getLogger(StandardTranslator.class.getName()).log(Level.INFO,
                 "Translation process ready. Output directory: {0}",
@@ -90,6 +99,14 @@ public class StandardTranslator implements Translator {
                     globalDefinitions.toString());
             FileUtils.writeStringToFile(new File(Options.outputDirectory
                     + "/global_definitions.h"), currentFileContents);
+            //Write global declarations
+            currentFileContents = FileUtils.readFileToString(new File(
+                    System.getProperty("promnetpp.home")
+                    + "/templates/private/globals.cc"));
+            currentFileContents = MessageFormat.format(currentFileContents,
+                    globalDeclarations.toString());
+            FileUtils.writeStringToFile(new File(Options.outputDirectory
+                    + "/globals.cc"), currentFileContents);
             //Copy files
             copyFiles();
         } catch (IOException ex) {
@@ -115,6 +132,13 @@ public class StandardTranslator implements Translator {
             template.copyStaticFiles();
             template.writeDynamicFiles();
         }
+        //Utility files
+        FileUtils.copyFile(new File(System.getProperty("promnetpp.home")
+                + "/templates/private/utilities.cc"),
+                new File(Options.outputDirectory + "/utilities.h"));
+        FileUtils.copyFile(new File(System.getProperty("promnetpp.home")
+                + "/templates/private/utilities.cc"),
+                new File(Options.outputDirectory + "/utilities.cc"));
     }
 
     private void indent() {
@@ -127,8 +151,10 @@ public class StandardTranslator implements Translator {
 
     @Override
     public void translate(AbstractSyntaxTree abstractSyntaxTree) {
-        doFirstPassOnAST(abstractSyntaxTree);
-        //Second pass
+        doFirstPassesOnAST(abstractSyntaxTree);
+        //Make preparations
+        makePreparationsBeforeFinalPass();
+        //Final pass
         ASTNode rootNode = abstractSyntaxTree.getRootNode();
         ASTNode specification = (ASTNode) rootNode.jjtGetChild(0);
         translateSpecification(specification);
@@ -153,9 +179,6 @@ public class StandardTranslator implements Translator {
             //Comment
             if (currentChildType.equals("Comment")) {
                 handleComment(currentChild);
-            } //#define's
-            else if (currentChildType.equals("DefineDirective")) {
-                handleDefineDirective(currentChild);
             } //Type definition (global)
             else if (currentChildType.equals("TypeDefinition")) {
                 translateTypeDefinition(currentChild);
@@ -261,14 +284,50 @@ public class StandardTranslator implements Translator {
                             setNumberOfParticipants(numberOfParticipants);
                 }
             }
+        } else {
+            String directiveName = defineDirectiveAsString.substring(0,
+                    defineDirectiveAsString.indexOf("("));
+            String directiveValue = defineDirectiveAsString.substring(
+                    defineDirectiveAsString.indexOf("("));
+            macros.put(directiveName, directiveValue);
         }
     }
 
     private void translateGlobalDeclaration(ASTNode globalDeclaration) {
+        ASTNode simpleDeclaration = globalDeclaration.getFirstChild();
+        String typeName = simpleDeclaration.getTypeName();
+        String identifier = simpleDeclaration.getName();
+        boolean isArray = simpleDeclaration.getValueAsBoolean("isArray");
+        String arrayCapacity = null;
+        if (isArray) {
+            arrayCapacity = simpleDeclaration.getValueAsString("arrayCapacity");
+        }
+        if (typeName.equals("chan")) {
+            ASTNode channelInitialization = globalDeclaration.getSecondChild();
+            Channel channel = new Channel(identifier);
+            channel.buildFromInitialization(channelInitialization);
+            translateChannel(channel);
+        } else {
+
+            if (globalDeclaration.hasSingleChild()) {
+                globalDeclarations.write(typeName + " " + identifier);
+                if (isArray) {
+                    globalDeclarations.write("[");
+                    globalDeclarations.write(arrayCapacity);
+                    globalDeclarations.write("]");
+                } else if (typeName.equals("byte") || typeName.equals("short")
+                        || typeName.equals("int")) {
+                    globalDeclarations.write(" = 0");
+                }
+                globalDeclarations.write(";\n");
+            }
+        }
     }
 
     private void translateProcessDefinition(ASTNode processDefinition) {
         String processName = processDefinition.getValueAsString("processName");
+        Process process = new Process(processName);
+        
         ASTNode instructionList = (ASTNode) processDefinition.jjtGetChild(0);
         for (int i = 0; i < instructionList.jjtGetNumChildren(); ++i) {
             ASTNode instruction = (ASTNode) instructionList.jjtGetChild(i);
@@ -314,16 +373,21 @@ public class StandardTranslator implements Translator {
         }
     }
 
-    private void doFirstPassOnAST(AbstractSyntaxTree abstractSyntaxTree) {
+    private void doFirstPassesOnAST(AbstractSyntaxTree abstractSyntaxTree) {
         ASTNode rootNode = abstractSyntaxTree.getRootNode();
         ASTNode specification = (ASTNode) rootNode.jjtGetChild(0);
         ASTNode unit, unitChild;
         String unitType;
+        //First pass
         for (int i = 0; i < specification.jjtGetNumChildren(); ++i) {
             unit = (ASTNode) specification.jjtGetChild(i);
             for (int j = 0; j < unit.jjtGetNumChildren(); ++j) {
                 unitChild = (ASTNode) unit.jjtGetChild(j);
                 unitType = unitChild.getNodeName();
+                //Treat define directives
+                if (unitType.equals("DefineDirective")) {
+                    handleDefineDirective(unitChild);
+                }
                 //Add any function definitions to the function map
                 if (unitType.equals("FunctionDefinition")) {
                     String functionName = unitChild.getValueAsString(
@@ -349,28 +413,49 @@ public class StandardTranslator implements Translator {
                 if (unitType.equals("ProcessDefinition")) {
                     String processName = unitChild.getValueAsString(
                             "processName");
-                    setFunctionCallers(processName, unitChild);
+                    Process process = new Process(processName);
+                    processes.put(processName, process);
+                    setFunctionCallers(processName, "process", unitChild);
                 } else if (unitType.equals("InitProcessDefinition")) {
-                    setFunctionCallers("init", unitChild);
+                    setFunctionCallers("init", "process", unitChild);
+                }
+            }
+        }
+        //Second pass
+        for (int i = 0; i < specification.jjtGetNumChildren(); ++i) {
+            unit = (ASTNode) specification.jjtGetChild(i);
+            for (int j = 0; j < unit.jjtGetNumChildren(); ++j) {
+                unitChild = (ASTNode) unit.jjtGetChild(j);
+                unitType = unitChild.getNodeName();
+                //Functions may call other functions too
+                if (unitType.equals("FunctionDefinition")) {
+                    String functionName = unitChild.getValueAsString(
+                            "functionName");
+                    setFunctionCallers(functionName, "function", unitChild);
                 }
             }
         }
     }
 
-    private void setFunctionCallers(String processName, ASTNode processNode) {
-        List<String> calledFunctions = Utilities.searchForFunctionCalls(
-                processNode);
+    private void setFunctionCallers(String name, String type, ASTNode node) {
+        List<String> calledFunctions = Utilities.searchForFunctionCalls(node);
         for (String functionName : calledFunctions) {
-            /*
-             * Ignore printf and select, as they're not defined by
-             * the user
-             */
-            if (!(functionName.equals("printf")
-                    || functionName.equals("select"))) {
-                Function function = functions.get(functionName);
-                function.addCaller(processName);
-                //System.out.println(processName + " calls " + functionName);
+            //Ignore functions that are not user-defined
+            if (functionName.equals("printf") || functionName.equals("select")
+                    || functionName.equals("assert")
+                    || functionName.equals("empty")
+                    || functionName.equals("nempty")
+                    || functionName.equals("full")
+                    || functionName.equals("nfull")) {
+                continue;
             }
+            //Ignore macros
+            if (macros.containsKey(functionName)) {
+                continue;
+            }
+            Function function = functions.get(functionName);
+            function.addCaller(name, type);
+            function.normalize(functions);
         }
     }
 
@@ -378,5 +463,78 @@ public class StandardTranslator implements Translator {
         ASTNode instructions = function.getInstructions();
         assert instructions != null : "Function " + function.getName() + " has"
                 + " no instructions!";
+        if (template != null) {
+            /*
+             * If we're using a template, there's no need to translate functions
+             * for the init process.
+             */
+            if (function.hasSingleCaller() && function.getFirstCaller()
+                    .equalsIgnoreCase("init")) {
+                return;
+            }
+            //System.out.println(function.getName() + "," + function.getFirstCaller());
+        }
+    }
+
+    private void translateChannel(Channel channel) {
+        //Handle the header file first (.h)
+        String headerFileLocation = Options.outputDirectory + "/" +
+                    channel.toCppHeaderFileName();
+        FileWriter headerFileWriter;
+        try {
+            headerFileWriter = new FileWriter(headerFileLocation);
+            String headerFileContents = FileUtils.readFileToString(new File(
+                       "templates/private/channel.h"));
+            headerFileContents = MessageFormat.format(headerFileContents, new
+                    Object[]{channel.toCppHeaderName(),
+                    channel.toCppClassName()});
+            headerFileWriter.write(headerFileContents);
+            headerFileWriter.close();
+        } catch (IOException ex) {
+            Logger.getLogger(StandardTranslator.class.getName()).log(
+                    Level.SEVERE, null, ex);
+            System.err.println("Unable to write header file for a channel: "
+                    + headerFileLocation);
+            System.err.println(ex);
+            System.exit(1);
+        }
+        //Now handle the source file (.cc)
+        String sourceFileLocation = Options.outputDirectory + "/" +
+                    channel.toCppSourceFileName();
+        FileWriter sourceFileWriter;
+        try {
+            sourceFileWriter = new FileWriter(sourceFileLocation);
+            String sourceFileContents = FileUtils.readFileToString(new File(
+                       "templates/private/channel.cc"));
+            sourceFileContents = MessageFormat.format(sourceFileContents, new
+                    Object[]{channel.toCppHeaderFileName(),
+                    channel.toCppClassName()});
+            sourceFileWriter.write(sourceFileContents);
+            sourceFileWriter.close();
+        } catch (IOException ex) {
+            Logger.getLogger(StandardTranslator.class.getName()).log(
+                    Level.SEVERE, null, ex);
+            System.err.println("Unable to write source file for a channel: "
+                    + sourceFileLocation);
+            System.err.println(ex);
+            System.exit(1);
+        }
+    }
+
+    private void makePreparationsBeforeFinalPass() {
+        for (Function function : functions.values()) {
+            if (function.hasSingleCaller()) {
+                String caller = function.getFirstCaller();
+                String callerType = function.getFirstCallerType();
+                if (callerType.equalsIgnoreCase("process")) {
+                    if (caller.equalsIgnoreCase("init")) {
+                        initProcess.addFunction(function.getName());
+                    } else {
+                        Process process = processes.get(caller);
+                        process.addFunction(function.getName());
+                    }
+                }
+            }
+        }
     }
 }

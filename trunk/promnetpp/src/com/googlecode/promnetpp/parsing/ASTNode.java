@@ -258,11 +258,23 @@ public class ASTNode extends SimpleNode {
         return hash;
     }
     
+    public boolean hasNoChildren() {
+        return jjtGetNumChildren() == 0;
+    }
+    
     public boolean hasSingleChild() {
         return jjtGetNumChildren() == 1;
     }
     
+    public boolean hasMultipleChildren() {
+        return jjtGetNumChildren() > 1;
+    }
+    
     public ASTNode getFirstChild() {
         return (ASTNode) jjtGetChild(0);
+    }
+    
+    public ASTNode getSecondChild() {
+        return (ASTNode) jjtGetChild(1);
     }
 }
