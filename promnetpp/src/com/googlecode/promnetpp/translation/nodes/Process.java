@@ -9,7 +9,9 @@
  */
 package com.googlecode.promnetpp.translation.nodes;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -19,10 +21,12 @@ import java.util.Map;
 public class Process {
     private String name;
     private Map<String, String> variables;
+    private List<String> calledFunctions;
 
     public Process(String name) {
         this.name = name;
         variables = new HashMap<String, String>();
+        calledFunctions = new ArrayList<String>();
     }
 
     public String getName() {
@@ -35,5 +39,13 @@ public class Process {
 
     public Map<String, String> getVariables() {
         return variables;
+    }
+    
+    public void addFunction(String functionName) {
+        calledFunctions.add(functionName);
+    }
+
+    public List<String> getCalledFunctions() {
+        return calledFunctions;
     }
 }
