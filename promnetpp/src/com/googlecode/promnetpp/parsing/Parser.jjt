@@ -219,7 +219,7 @@ void Instruction() : {}
     | BlockInstruction()
 }
 
-void NonBlockInstruction() : {}
+void NonBlockInstruction() #void : {}
 {
     /* variable++ and variable-- */
     LOOKAHEAD(Increment()) Increment()
@@ -305,43 +305,87 @@ void Skip() : {}
     <SKIP_>
 }
 
-void Variable() : {}
+void Variable() : {Token identifier;}
 {
-    <IDENTIFIER> [ "[" Expression() "]" ] [ "." Variable() ]
+    identifier = <IDENTIFIER> { jjtThis.name = identifier.image; }
+    [ "[" Expression() "]" ] [ "." Variable() ]
 }
 
-void Expression() : {}
+void Expression() : {int numberOfTerms; boolean isBinaryExpression;
+String operator;}
 {
+    //Setup
+    {
+        numberOfTerms = 1;
+        isBinaryExpression = false;
+        operator = null;
+    }
+    //Definition
     Term() (
-        "+" Term()
-        | "-" Term()
+        "+" Term() {++numberOfTerms; isBinaryExpression = true; operator = "+";}
+        | "-" Term() {++numberOfTerms; isBinaryExpression = true; operator = "-";}
         /* Comparative */
-        | ">" Term()
-        | ">=" Term()
-        | "<" Term()
-        | "<=" Term()
-        | "==" Term()
-        | "!=" Term()
+        | ">" Term() {++numberOfTerms; isBinaryExpression = true; operator = ">";}
+        | ">=" Term() {++numberOfTerms; isBinaryExpression = true; operator = ">=";}
+        | "<" Term() {++numberOfTerms; isBinaryExpression = true; operator = "<";}
+        | "<=" Term() {++numberOfTerms; isBinaryExpression = true; operator = "<=";}
+        | "==" Term() {++numberOfTerms; isBinaryExpression = true; operator = "==";}
+        | "!=" Term() {++numberOfTerms; isBinaryExpression = true; operator = "!=";}
         /* Logical */
-        | "&&" Term()
-        | "||" Term()
+        | "&&" Term() {++numberOfTerms; isBinaryExpression = true; operator = "&&";}
+        | "||" Term() {++numberOfTerms; isBinaryExpression = true; operator = "||";}
     )*
+    //Finish
+    {
+        jjtThis.putValue("numberOfTerms", numberOfTerms);
+        jjtThis.putValue("isBinaryExpression", isBinaryExpression);
+        jjtThis.putValue("operator", operator);
+    }
 }
 
-void Term() : {}
+void Term() : {int numberOfFactors; boolean isBinaryExpression;
+String operator;}
 {
-    Factor() ("*" Factor() | "/" Factor())*
+    //Setup
+    {
+        numberOfFactors = 1;
+        isBinaryExpression = false;
+        operator = null;
+    }
+    //Definition
+    Factor() (
+        "*" Factor() {++numberOfFactors; isBinaryExpression = true; operator = "*";}
+        | "/" Factor() {++numberOfFactors; isBinaryExpression = true; operator = "/";}
+    )*
+    //Finish
+    {
+        jjtThis.putValue("numberOfFactors", numberOfFactors);
+        jjtThis.putValue("isBinaryExpression", isBinaryExpression);
+        jjtThis.putValue("operator", operator);
+    }
 }
 
-void Factor() : {}
+void Factor() : {Token literal; String factorType = null;
+    String factorValue = null;}
 {
-    "(" Expression() ")"
-    | <INTEGER_LITERAL> | <STRING_LITERAL>
-    | <TRUE> | <FALSE>
-    | <TIMEOUT>
-    
-    | LOOKAHEAD(<IDENTIFIER> "(") FunctionCall()
-    | Variable()
+    (
+    //It might contain an expression enclosed in parentheses
+    "(" Expression() ")" { factorType = "expressionParentheses"; }
+    //Literals and constants go here
+    | literal = <INTEGER_LITERAL> { factorType = "integerLiteral"; factorValue = literal.image; }
+    | literal = <STRING_LITERAL> { factorType = "stringLiteral"; factorValue = literal.image; }
+    | literal = <TRUE> { factorType = "booleanConstant"; factorValue = "true"; }
+    | literal = <FALSE> { factorType = "booleanConstant"; factorValue = "false"; }
+    | literal = <TIMEOUT> { factorType = "timeout"; factorValue = "timeout"; }
+    //Everything else is either a function call or a variable
+    | LOOKAHEAD(<IDENTIFIER> "(") FunctionCall() { factorType = "functionCall"; }
+    | Variable() { factorType = "variable"; }
+    )
+    //Save the information about our factor
+    {
+        jjtThis.putValue("factorType", factorType);
+        jjtThis.putValue("factorValue", factorValue);
+    }
 }
 
 void FunctionCall() : {Token functionName;}
@@ -360,7 +404,7 @@ void FunctionCallParameters() : {}
     Expression() ("," Expression())*
 }
 
-void BlockInstruction() : {}
+void BlockInstruction() #void : {}
 {
     AtomicBlock()
     | DStepBlock()

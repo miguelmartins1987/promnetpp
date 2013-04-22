@@ -22,6 +22,7 @@
             <word>InitProcess</word>
             <word>msg</word>
             <word>printf</word>
+            <word>ProcessInterface</word>
             <word>proctype</word>
             <word>PROMELA</word>
             <word>Utype</word>

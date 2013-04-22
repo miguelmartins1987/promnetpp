@@ -277,4 +277,63 @@ public class ASTNode extends SimpleNode {
     public ASTNode getSecondChild() {
         return (ASTNode) jjtGetChild(1);
     }
+    
+    public String toCppVariableName() {
+        String result = name;
+        for (int i = 0; i < jjtGetNumChildren(); ++i) {
+            ASTNode child = (ASTNode) jjtGetChild(i);
+            if (child.getNodeName().equals("Variable")) {
+                result += "." + child.name;
+            }
+        }
+        return result;
+    }
+
+    public String toCppExpression() {
+        String result = getExpressionAsString(this);
+        return result;
+    }
+
+    private String getExpressionAsString(ASTNode expression) {
+        ASTNode firstTerm = expression.getFirstChild();
+        String result = getTermAsString(firstTerm);
+        int numberOfTerms = (Integer) expression.getValue("numberOfTerms");
+        if (numberOfTerms == 2) {
+            ASTNode secondTerm = expression.getSecondChild();
+            String operator = expression.getValueAsString("operator");
+            result += " " + operator + " " + getTermAsString(secondTerm);
+        }
+        return result;
+    }
+
+    private String getTermAsString(ASTNode term) {
+        ASTNode firstFactor = term.getFirstChild();
+        String result = getFactorAsString(firstFactor);
+        return result;
+    }
+
+    private String getFactorAsString(ASTNode factor) {
+        String factorType = factor.getValueAsString("factorType");
+        String factorValue = factor.getValueAsString("factorValue");
+        if (factorType.equals("expressionParentheses")) {
+            ASTNode expression = factor.getFirstChild();
+            return "(" + getFactorAsString(expression) + ")";
+        } else if (factorType.equals("integerLiteral")) {
+            return factorValue;
+        } else if (factorType.equals("stringLiteral")) {
+            return factorValue;
+        } else if (factorType.equals("booleanConstant")) {
+            return factorValue;
+        } else if (factorType.equals("timeout")) {
+            return factorValue;
+        } else if (factorType.equals("functionCall")) {
+            //TODO Handle function calls
+            return "function()";
+        } else if (factorType.equals("variable")) {
+            ASTNode variable = factor.getFirstChild();
+            return variable.toCppVariableName();
+        } else {
+            return "";
+        }
+    }
 }
