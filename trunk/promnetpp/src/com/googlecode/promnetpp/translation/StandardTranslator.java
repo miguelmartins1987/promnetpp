@@ -57,6 +57,9 @@ public class StandardTranslator implements Translator {
     //Other
     private Map<String, Function> functions;
     private Map<String, String> macros, nonMacros;
+    private int currentStep = 0;
+    private boolean usingStepMap;
+    private boolean initialStepWritten;
 
     @Override
     public void init() {
@@ -223,26 +226,14 @@ public class StandardTranslator implements Translator {
                 if (!isArray) {
                     String message = MessageFormat.format("{0} {1};\n",
                             typeName, name);
-                    try {
-                        Utilities.writeWithIndentation(typeDefinitions, message,
-                                currentIndentationLevel);
-                    } catch (IOException ex) {
-                        Logger.getLogger(StandardTranslator.class.getName()).
-                                log(Level.SEVERE, null, ex);
-                        System.exit(1);
-                    }
+                    Utilities.writeWithIndentation(typeDefinitions, message,
+                            currentIndentationLevel);
                 } else {
                     String message = MessageFormat.format("{0} {1}[{2}];\n",
                             typeName, name, currentChild.getValueAsString(
                             "arrayCapacity"));
-                    try {
-                        Utilities.writeWithIndentation(typeDefinitions, message,
-                                currentIndentationLevel);
-                    } catch (IOException ex) {
-                        Logger.getLogger(StandardTranslator.class.getName()).
-                                log(Level.SEVERE, null, ex);
-                        System.exit(1);
-                    }
+                    Utilities.writeWithIndentation(typeDefinitions, message,
+                            currentIndentationLevel);
                 }
             }
         }
@@ -430,6 +421,7 @@ public class StandardTranslator implements Translator {
                     }
                     function.setParameters(parameters);
                     function.setInstructions(instructions);
+                    function.analyze();
                     functions.put(functionName, function);
                     Logger.getLogger(StandardTranslator.class.getName()).log(
                             Level.INFO, "Added a function named {0}",
@@ -502,6 +494,12 @@ public class StandardTranslator implements Translator {
             StringWriter writer = template.getSpecificFunctionWriter(
                     function.getName());
             indent();
+            if (function.requiresStepMap()) {
+                Utilities.writeWithIndentation(writer, MessageFormat.format(
+                        "int step = step_map[\"{0}\"];\n", function.getName()),
+                        currentIndentationLevel);
+                usingStepMap = true;
+            }
             for (int i = 0; i < instructions.jjtGetNumChildren(); ++i) {
                 ASTNode instruction = (ASTNode) instructions.jjtGetChild(i);
                 instruction = instruction.getFirstChild();
@@ -509,6 +507,8 @@ public class StandardTranslator implements Translator {
             }
             dedent();
         }
+        initialStepWritten = false;
+        usingStepMap = false;
     }
 
     private void translateChannel(Channel channel) {
@@ -573,7 +573,17 @@ public class StandardTranslator implements Translator {
     }
 
     private void translateInstruction(ASTNode instruction, StringWriter writer) {
+        String code;
         String instructionType = instruction.getNodeName();
+        System.out.println(instructionType);
+        //Write initial step, if needed
+        if (usingStepMap && currentStep == 0 && !initialStepWritten) {
+            Utilities.writeWithIndentation(writer,
+                    "if (step == 0) {\n", currentIndentationLevel);
+            ++currentStep;
+            indent();
+        }
+        //Perform the actual translation
         if (instructionType.equals("Assignment")) {
             ASTNode variable = instruction.getFirstChild();
             ASTNode expression = instruction.getSecondChild();
@@ -582,14 +592,32 @@ public class StandardTranslator implements Translator {
             String translatedExpression = expression.toCppExpression();
             translatedAssignment = MessageFormat.format(translatedAssignment,
                     new Object[]{translatedVariable, translatedExpression});
-
-            try {
-                Utilities.writeWithIndentation(writer, translatedAssignment,
-                        currentIndentationLevel);
-            } catch (IOException ex) {
-                Logger.getLogger(StandardTranslator.class.getName()).log(
-                        Level.SEVERE, null, ex);
+            Utilities.writeWithIndentation(writer, translatedAssignment,
+                    currentIndentationLevel);
+        } else if (instructionType.equals("DStepBlock")) {
+            ASTNode blockInstructions = instruction.getFirstChild();
+            for (int i = 0; i < blockInstructions.jjtGetNumChildren(); ++i) {
+                ASTNode blockInstruction = (ASTNode) blockInstructions.jjtGetChild(i);
+                translateInstruction(blockInstruction.getFirstChild(), writer);
             }
+        } else if (instructionType.equals("DoLoop")) {
+            code = MessageFormat.format("if (step == {0}) '{'\n",
+                    currentStep);
+            Utilities.writeWithIndentation(writer, code,
+                    currentIndentationLevel);
+            indent();
+            dedent();
+            Utilities.writeWithIndentation(writer, "}\n",
+                    currentIndentationLevel);
+        }
+        //Close initial step, if needed
+        if (usingStepMap && currentStep == 1 && !initialStepWritten) {
+            Utilities.writeWithIndentation(writer,
+                    "++step;\n", currentIndentationLevel);
+            dedent();
+            Utilities.writeWithIndentation(writer,
+                    "}\n", currentIndentationLevel);
+            initialStepWritten = true;
         }
     }
 }

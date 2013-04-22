@@ -28,6 +28,7 @@ public class Function {
     private List<String> callerTypes;
     
     private boolean generic;
+    private boolean requiresStepMap;
 
     public Function(String name) {
         this.name = name;
@@ -102,6 +103,35 @@ public class Function {
                 callers.set(i, caller.getFirstCaller());
                 callerTypes.set(i, "process");
             }
+        }
+    }
+
+    public boolean requiresStepMap() {
+        return requiresStepMap;
+    }    
+
+    public void analyze() {
+        analyzeInstructions();
+    }
+
+    private void analyzeInstructions() {
+        for (int i = 0; i < instructions.jjtGetNumChildren(); ++i) {
+            ASTNode instruction = (ASTNode) instructions.jjtGetChild(i);
+            analyzeInstruction(instruction.getFirstChild());
+        }
+    }
+
+    private void analyzeInstruction(ASTNode instruction) {
+        String instructionType = instruction.getNodeName();
+        if (instructionType.equals("DStepBlock")) {
+            ASTNode blockInstructions = instruction.getFirstChild();
+            for (int i = 0; i < blockInstructions.jjtGetNumChildren(); ++i) {
+                ASTNode blockInstruction = (ASTNode)
+                        blockInstructions.jjtGetChild(i);
+                analyzeInstruction(blockInstruction.getFirstChild());
+            }
+        } else if (instructionType.equals("DoLoop")) {
+            requiresStepMap = true;
         }
     }
 }

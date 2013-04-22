@@ -89,15 +89,20 @@ public class Utilities {
      * @see Writer#write(java.lang.String) 
      */
     public static void writeWithIndentation(Writer writer, String message,
-            int indentation) throws IOException {
+            int indentation) {
         String indentationString = StringUtils.repeat(" ", indentation);
         message = message.replace("\n", "\n" + indentationString);
         if (message.endsWith(indentationString)) {
             message = message.substring(0, message.length()
                     - indentationString.length());
         }
-        writer.write(indentationString);
-        writer.write(message);
+        try {
+            writer.write(indentationString);
+            writer.write(message);
+        } catch (IOException ex) {
+            Logger.getLogger(Utilities.class.getName()).log(Level.SEVERE,
+                    null, ex);
+        }
     }
 
     public static List<String> searchForFunctionCalls(ASTNode node) {
