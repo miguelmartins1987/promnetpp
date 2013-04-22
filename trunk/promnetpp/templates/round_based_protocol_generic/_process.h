@@ -4,16 +4,22 @@
 #include "process_interface.h"
 #include "types.h"
 
-class Process : public ProcessInterface '{'
+class Process : public ProcessInterface {
 private:
     virtual void initialize();
     virtual void handleMessage(cMessage* msg);
     virtual void finish();
     //Functions
-    {0}
+    void begin_round();
+    void compute_message();
+    void end_round();
+    void receive();
+    void send_message_to_all_processes();
+    void state_transition();
+    void wait_to_receive();
     //Variables
-    {1}
-'}';
+    message_t _message;
+};
 
 Define_Module(Process)
 

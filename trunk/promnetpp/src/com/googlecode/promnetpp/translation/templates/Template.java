@@ -12,6 +12,7 @@ package com.googlecode.promnetpp.translation.templates;
 import com.googlecode.promnetpp.options.Options;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,12 +31,17 @@ public abstract class Template {
     protected List<String> staticFileNames;
     protected List<String> dynamicFileNames;
     protected Map<String, String> dynamicFileContents;
+    protected String currentBlock;
+    //Meant for specific functions
+    protected Map<String, StringWriter> specificFunctionWriters;
     
 
     public Template() {
         staticFileNames = new ArrayList<String>();
         dynamicFileNames = new ArrayList<String>();
         dynamicFileContents = new HashMap<String, String>();
+        currentBlock = "main";
+        specificFunctionWriters = new HashMap<String, StringWriter>();
     }
     
     public static Template getTemplate(String templateName) {
@@ -85,5 +91,18 @@ public abstract class Template {
             FileUtils.writeStringToFile(new File(Options.outputDirectory + "/"
                     + fileName), contents);
         }
+    }
+
+    public void setCurrentBlock(String blockName) {
+        currentBlock = blockName;
+    }
+    
+    public StringWriter getSpecificFunctionWriter(String functionName) {
+        StringWriter writer = specificFunctionWriters.get(functionName);
+        if (writer == null) {
+            writer = new StringWriter();
+            specificFunctionWriters.put(functionName, writer);
+        }
+        return writer;
     }
 }

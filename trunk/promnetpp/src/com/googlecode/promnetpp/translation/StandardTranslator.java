@@ -42,9 +42,10 @@ public class StandardTranslator implements Translator {
     //Indentation settings
     private static final int SPACES_PER_TAB = 4;
     private int currentIndentationLevel = 0;
-    /**
-     * The template to be used, if any
-     */
+    //Whether the translator can skip units (except for annotated comments)
+    //May change over time
+    private static boolean canSkipUnits = false;
+    //The template to be used, if any
     private Template template;
     //Process collection (excluding init)
     private Map<String, Process> processes;
@@ -179,29 +180,38 @@ public class StandardTranslator implements Translator {
             //Comment
             if (currentChildType.equals("Comment")) {
                 handleComment(currentChild);
-            } //Type definition (global)
-            else if (currentChildType.equals("TypeDefinition")) {
-                translateTypeDefinition(currentChild);
-            } //Global declarations
-            else if (currentChildType.equals("GlobalDeclaration")) {
-                translateGlobalDeclaration(currentChild);
-            } //Function definitions
-            else if (currentChildType.equals("FunctionDefinition")) {
-                String functionName = currentChild.getValueAsString(
-                        "functionName");
-                Function function = functions.get(functionName);
-                translateFunction(function);
-            } //Process definitions
-            else if (currentChildType.equals("ProcessDefinition")) {
-                translateProcessDefinition(currentChild);
+            } else {
+                if (!canSkipUnits) {
+                    //Type definition (global)
+                    if (currentChildType.equals("TypeDefinition")) {
+                        translateTypeDefinition(currentChild);
+                    } //Global declarations
+                    else if (currentChildType.equals("GlobalDeclaration")) {
+                        translateGlobalDeclaration(currentChild);
+                    } //Function definitions
+                    else if (currentChildType.equals("FunctionDefinition")) {
+                        String functionName = currentChild.getValueAsString(
+                                "functionName");
+                        Function function = functions.get(functionName);
+                        translateFunction(function);
+                    } //Process definitions
+                    else if (currentChildType.equals("ProcessDefinition")) {
+                        translateProcessDefinition(currentChild);
+                    }
+                }
             }
         }
     }
 
     private void translateTypeDefinition(ASTNode typeDefinition) {
+        String userTypeName = typeDefinition.getName();
         Logger.getLogger(StandardTranslator.class.getName()).log(Level.INFO,
-                "Found type definition (typeName={0})",
-                typeDefinition.getName());
+                "Found type definition (typeName={0})", userTypeName);
+        //OMNeT++ may not like certain names for type names, such as "message"
+        if (userTypeName.equals("message")) {
+            userTypeName = "message_t";
+        }
+
         typeDefinitions.write("typedef struct {\n");
         indent();
         for (int i = 0; i < typeDefinition.jjtGetNumChildren(); ++i) {
@@ -237,8 +247,7 @@ public class StandardTranslator implements Translator {
             }
         }
         dedent();
-        typeDefinitions.write(MessageFormat.format("'}' {0};",
-                typeDefinition.getName()));
+        typeDefinitions.write(MessageFormat.format("'}' {0};", userTypeName));
         typeDefinitions.write("\n\n");
     }
 
@@ -326,8 +335,6 @@ public class StandardTranslator implements Translator {
 
     private void translateProcessDefinition(ASTNode processDefinition) {
         String processName = processDefinition.getValueAsString("processName");
-        Process process = new Process(processName);
-        
         ASTNode instructionList = (ASTNode) processDefinition.jjtGetChild(0);
         for (int i = 0; i < instructionList.jjtGetNumChildren(); ++i) {
             ASTNode instruction = (ASTNode) instructionList.jjtGetChild(i);
@@ -370,6 +377,25 @@ public class StandardTranslator implements Translator {
                     template = Template.getTemplate(templateName);
                 }
             }
+        } else if (directiveName.equalsIgnoreCase("BEGIN_TEMPLATE_BLOCK")) {
+            String parametersAsString = comment.substring(comment.indexOf("("),
+                    comment.lastIndexOf(")")).substring("(".length());
+            String[] parameters = parametersAsString.split(",");
+            for (String parameter : parameters) {
+                String[] parameterUnits = parameter.split("=");
+                String parameterName = parameterUnits[0];
+                String parameterValue = parameterUnits[1];
+                if (parameterName.equalsIgnoreCase("block_name")) {
+                    String blockName = parameterValue.replaceAll("\"", "");
+                    if (blockName.equalsIgnoreCase("generic_part")) {
+                        template.setCurrentBlock("generic_part");
+                        canSkipUnits = true;
+                    }
+                }
+            }
+        } else if (directiveName.equalsIgnoreCase("END_TEMPLATE_BLOCK")) {
+            template.setCurrentBlock("main");
+            canSkipUnits = false;
         }
     }
 
@@ -400,7 +426,7 @@ public class StandardTranslator implements Translator {
                     } //Functions with parameters
                     else {
                         parameters = (ASTNode) unitChild.jjtGetChild(0);
-                        instructions = (ASTNode) unitChild.jjtGetChild(0);
+                        instructions = (ASTNode) unitChild.jjtGetChild(1);
                     }
                     function.setParameters(parameters);
                     function.setInstructions(instructions);
@@ -472,22 +498,30 @@ public class StandardTranslator implements Translator {
                     .equalsIgnoreCase("init")) {
                 return;
             }
-            //System.out.println(function.getName() + "," + function.getFirstCaller());
+            System.out.println("Translating " + function.getName());
+            StringWriter writer = template.getSpecificFunctionWriter(
+                    function.getName());
+            indent();
+            for (int i = 0; i < instructions.jjtGetNumChildren(); ++i) {
+                ASTNode instruction = (ASTNode) instructions.jjtGetChild(i);
+                instruction = instruction.getFirstChild();
+                translateInstruction(instruction, writer);
+            }
+            dedent();
         }
     }
 
     private void translateChannel(Channel channel) {
         //Handle the header file first (.h)
-        String headerFileLocation = Options.outputDirectory + "/" +
-                    channel.toCppHeaderFileName();
+        String headerFileLocation = Options.outputDirectory + "/"
+                + channel.toCppHeaderFileName();
         FileWriter headerFileWriter;
         try {
             headerFileWriter = new FileWriter(headerFileLocation);
             String headerFileContents = FileUtils.readFileToString(new File(
-                       "templates/private/channel.h"));
-            headerFileContents = MessageFormat.format(headerFileContents, new
-                    Object[]{channel.toCppHeaderName(),
-                    channel.toCppClassName()});
+                    "templates/private/channel.h"));
+            headerFileContents = MessageFormat.format(headerFileContents, new Object[]{channel.toCppHeaderName(),
+                        channel.toCppClassName()});
             headerFileWriter.write(headerFileContents);
             headerFileWriter.close();
         } catch (IOException ex) {
@@ -499,16 +533,16 @@ public class StandardTranslator implements Translator {
             System.exit(1);
         }
         //Now handle the source file (.cc)
-        String sourceFileLocation = Options.outputDirectory + "/" +
-                    channel.toCppSourceFileName();
+        String sourceFileLocation = Options.outputDirectory + "/"
+                + channel.toCppSourceFileName();
         FileWriter sourceFileWriter;
         try {
             sourceFileWriter = new FileWriter(sourceFileLocation);
             String sourceFileContents = FileUtils.readFileToString(new File(
-                       "templates/private/channel.cc"));
-            sourceFileContents = MessageFormat.format(sourceFileContents, new
-                    Object[]{channel.toCppHeaderFileName(),
-                    channel.toCppClassName()});
+                    "templates/private/channel.cc"));
+            sourceFileContents = MessageFormat.format(sourceFileContents,
+                    new Object[]{channel.toCppHeaderFileName(),
+                        channel.toCppClassName()});
             sourceFileWriter.write(sourceFileContents);
             sourceFileWriter.close();
         } catch (IOException ex) {
@@ -534,6 +568,27 @@ public class StandardTranslator implements Translator {
                         process.addFunction(function.getName());
                     }
                 }
+            }
+        }
+    }
+
+    private void translateInstruction(ASTNode instruction, StringWriter writer) {
+        String instructionType = instruction.getNodeName();
+        if (instructionType.equals("Assignment")) {
+            ASTNode variable = instruction.getFirstChild();
+            ASTNode expression = instruction.getSecondChild();
+            String translatedAssignment = "{0} = {1};\n";
+            String translatedVariable = variable.toCppVariableName();
+            String translatedExpression = expression.toCppExpression();
+            translatedAssignment = MessageFormat.format(translatedAssignment,
+                    new Object[]{translatedVariable, translatedExpression});
+
+            try {
+                Utilities.writeWithIndentation(writer, translatedAssignment,
+                        currentIndentationLevel);
+            } catch (IOException ex) {
+                Logger.getLogger(StandardTranslator.class.getName()).log(
+                        Level.SEVERE, null, ex);
             }
         }
     }

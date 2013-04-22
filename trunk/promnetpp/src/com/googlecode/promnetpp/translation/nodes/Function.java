@@ -23,8 +23,11 @@ public class Function {
     private String name;
     private ASTNode parameters;
     private ASTNode instructions;
+    
     private List<String> callers;
     private List<String> callerTypes;
+    
+    private boolean generic;
 
     public Function(String name) {
         this.name = name;
@@ -73,6 +76,14 @@ public class Function {
             return callerTypes.get(0);
         }
         return null;
+    }
+    
+    public boolean isGeneric() {
+        return generic;
+    }
+
+    public void setGeneric(boolean generic) {
+        this.generic = generic;
     }
 
     public void normalize(Map<String, Function> functions) {
