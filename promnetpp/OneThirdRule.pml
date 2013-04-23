@@ -51,16 +51,15 @@ inline state_transition() {
         do
         :: temp = nempty(channel[(_pid-1)]);
             if
-            :: temp ->
-                receive(_message);
+            :: temp -> receive(_message);
                 if
                 :: my_state.received_message[_message.id] ->
                    my_state.values[_message.id] = _message.value;
                    my_state.received_message_count++
                 :: else -> skip
                 fi
-        :: else -> break
-           fi
+            :: else -> break
+            fi
         od;
 
         if

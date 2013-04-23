@@ -317,7 +317,7 @@ public class ASTNode extends SimpleNode {
         String factorValue = factor.getValueAsString("factorValue");
         if (factorType.equals("expressionParentheses")) {
             ASTNode expression = factor.getFirstChild();
-            return "(" + getFactorAsString(expression) + ")";
+            return "(" + getExpressionAsString(expression) + ")";
         } else if (factorType.equals("integerLiteral")) {
             return factorValue;
         } else if (factorType.equals("stringLiteral")) {
@@ -327,13 +327,27 @@ public class ASTNode extends SimpleNode {
         } else if (factorType.equals("timeout")) {
             return factorValue;
         } else if (factorType.equals("functionCall")) {
-            //TODO Handle function calls
-            return "function()";
+            ASTNode functionCall = factor.getFirstChild();
+            String functionName = functionCall.getValueAsString("functionName");
+            if (functionName.equals("empty")) {
+                return "channel->is_empty()";
+            } else if (functionName.equals("nempty")) {
+                return "channel->is_not_empty()";
+            }
+            return functionName + "()";
         } else if (factorType.equals("variable")) {
             ASTNode variable = factor.getFirstChild();
             return variable.toCppVariableName();
         } else {
-            return "";
+            assert false : "Couldn't resolve expression factor of type "
+                    + factorType;
+            return null;
         }
+    }
+
+    public boolean isAlwaysExecutable() {
+        String nodeName = getNodeName();
+        //TODO Determine which types of instructions are always executable
+        return nodeName.equals("Assignment");
     }
 }

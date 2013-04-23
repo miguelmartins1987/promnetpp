@@ -56,7 +56,10 @@ public class StandardTranslator implements Translator {
     private StringWriter globalDeclarations, globalDefinitions;
     //Other
     private Map<String, Function> functions;
+    private String currentFunction;
     private Map<String, String> macros, nonMacros;
+    private ASTNode lastWrittenInstruction;
+    
     private int currentStep = 0;
     private boolean usingStepMap;
     private boolean initialStepWritten;
@@ -478,6 +481,7 @@ public class StandardTranslator implements Translator {
     }
 
     private void translateFunction(Function function) {
+        currentFunction = function.getName();
         ASTNode instructions = function.getInstructions();
         assert instructions != null : "Function " + function.getName() + " has"
                 + " no instructions!";
@@ -606,9 +610,65 @@ public class StandardTranslator implements Translator {
             Utilities.writeWithIndentation(writer, code,
                     currentIndentationLevel);
             indent();
+            for (int i = 0; i < instruction.jjtGetNumChildren(); ++i) {
+                ASTNode guard = (ASTNode) instruction.jjtGetChild(i);
+                for (int j = 0; j < guard.jjtGetNumChildren(); ++j) {
+                    ASTNode guardInstruction = (ASTNode) guard.jjtGetChild(j);
+                    translateInstruction(guardInstruction.getFirstChild(),
+                            writer);
+                }
+            }
             dedent();
             Utilities.writeWithIndentation(writer, "}\n",
                     currentIndentationLevel);
+        } else if (instructionType.equals("If")) {
+            for (int i = 0; i < instruction.jjtGetNumChildren(); ++i) {
+                ASTNode guard = (ASTNode) instruction.jjtGetChild(i);
+                //Might not be a condition at all; we must determine if the
+                //statement is executable or not first
+                ASTNode guardCondition = guard.getFirstChild().getFirstChild();
+                if (!guardCondition.isAlwaysExecutable()) {
+                    String condition = null;
+                    String conditionType = guardCondition.getNodeName();
+                    if (conditionType.equals("Expression")) {
+                        condition = guardCondition.toCppExpression();
+                    }
+                    if (condition != null) {
+                        code = MessageFormat.format("if ({0}) '{'\n", condition);
+                        Utilities.writeWithIndentation(writer, code,
+                                currentIndentationLevel);
+                        indent();
+                        for (int j = 1; j < guard.jjtGetNumChildren(); ++j) {
+                            ASTNode guardInstruction = (ASTNode)
+                                    guard.jjtGetChild(j);
+                            translateInstruction(
+                                    guardInstruction.getFirstChild(), writer);
+                            if (!lastWrittenInstruction.isAlwaysExecutable()) {
+                                break;
+                            }
+                        }
+                        dedent();
+                        Utilities.writeWithIndentation(writer, "} else {\n",
+                                currentIndentationLevel);
+                        indent();
+                        Utilities.writeWithIndentation(writer, "step = 3;\n",
+                                currentIndentationLevel);
+                        dedent();
+                        Utilities.writeWithIndentation(writer, "}\n",
+                                currentIndentationLevel);
+                    }
+                }
+            }
+        } else if (instructionType.equals("Expression")) {
+            Utilities.writeWithIndentation(writer, instruction.toCppExpression()
+                    + ";\n", currentIndentationLevel);
+            if (!instruction.isAlwaysExecutable()) {
+                code = MessageFormat.format("save_location(\"{0}\", {1});\n",
+                        new Object[]{currentFunction, currentStep + 1});
+                Utilities.writeWithIndentation(writer, code,
+                        currentIndentationLevel);
+                ++currentStep;
+            }
         }
         //Close initial step, if needed
         if (usingStepMap && currentStep == 1 && !initialStepWritten) {
@@ -619,5 +679,7 @@ public class StandardTranslator implements Translator {
                     "}\n", currentIndentationLevel);
             initialStepWritten = true;
         }
+        //Save the last written instruction
+        lastWrittenInstruction = instruction;
     }
 }
