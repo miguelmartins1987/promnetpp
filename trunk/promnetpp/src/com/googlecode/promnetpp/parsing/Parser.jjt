@@ -22,6 +22,8 @@ package com.googlecode.promnetpp.parsing;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.List;
+import java.util.ArrayList;
 
 public class PROMELAParser {
     public static void main(String[] args) throws Exception {
@@ -305,63 +307,46 @@ void Skip() : {}
     <SKIP_>
 }
 
-void Variable() : {Token identifier;}
+void Variable() : {Token identifier; boolean isArray = false;}
 {
     identifier = <IDENTIFIER> { jjtThis.name = identifier.image; }
-    [ "[" Expression() "]" ] [ "." Variable() ]
+    //Is this variable referencing an array?
+    [ "[" Expression() "]" { isArray = true; } ]
+    //It might contain nested variables...
+    [ "." Variable() ]
+    //Save
+    { jjtThis.putValue("isArray", isArray); }
 }
 
-void Expression() : {int numberOfTerms; boolean isBinaryExpression;
-String operator;}
+void Expression() : {List<String> operators = new ArrayList<String>();}
 {
-    //Setup
-    {
-        numberOfTerms = 1;
-        isBinaryExpression = false;
-        operator = null;
-    }
-    //Definition
     Term() (
-        "+" Term() {++numberOfTerms; isBinaryExpression = true; operator = "+";}
-        | "-" Term() {++numberOfTerms; isBinaryExpression = true; operator = "-";}
+        "+" Term() {operators.add("+");}
+        | "-" Term() {operators.add("-");}
         /* Comparative */
-        | ">" Term() {++numberOfTerms; isBinaryExpression = true; operator = ">";}
-        | ">=" Term() {++numberOfTerms; isBinaryExpression = true; operator = ">=";}
-        | "<" Term() {++numberOfTerms; isBinaryExpression = true; operator = "<";}
-        | "<=" Term() {++numberOfTerms; isBinaryExpression = true; operator = "<=";}
-        | "==" Term() {++numberOfTerms; isBinaryExpression = true; operator = "==";}
-        | "!=" Term() {++numberOfTerms; isBinaryExpression = true; operator = "!=";}
+        | ">" Term() {operators.add(">");}
+        | ">=" Term() {operators.add(">=");}
+        | "<" Term() {operators.add("<");}
+        | "<=" Term() {operators.add("<=");}
+        | "==" Term() {operators.add("==");}
+        | "!=" Term() {operators.add("!=");}
         /* Logical */
-        | "&&" Term() {++numberOfTerms; isBinaryExpression = true; operator = "&&";}
-        | "||" Term() {++numberOfTerms; isBinaryExpression = true; operator = "||";}
+        | "&&" Term() {operators.add("&&");}
+        | "||" Term() {operators.add("||");}
     )*
-    //Finish
     {
-        jjtThis.putValue("numberOfTerms", numberOfTerms);
-        jjtThis.putValue("isBinaryExpression", isBinaryExpression);
-        jjtThis.putValue("operator", operator);
+        jjtThis.putValue("operators", operators);
     }
 }
 
-void Term() : {int numberOfFactors; boolean isBinaryExpression;
-String operator;}
+void Term() : {List<String> operators = new ArrayList<String>();}
 {
-    //Setup
-    {
-        numberOfFactors = 1;
-        isBinaryExpression = false;
-        operator = null;
-    }
-    //Definition
     Factor() (
-        "*" Factor() {++numberOfFactors; isBinaryExpression = true; operator = "*";}
-        | "/" Factor() {++numberOfFactors; isBinaryExpression = true; operator = "/";}
+        "*" Factor() {operators.add("*");}
+        | "/" Factor() {operators.add("/");}
     )*
-    //Finish
     {
-        jjtThis.putValue("numberOfFactors", numberOfFactors);
-        jjtThis.putValue("isBinaryExpression", isBinaryExpression);
-        jjtThis.putValue("operator", operator);
+        jjtThis.putValue("operators", operators);
     }
 }
 
