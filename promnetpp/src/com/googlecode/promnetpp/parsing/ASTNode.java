@@ -10,6 +10,7 @@
 package com.googlecode.promnetpp.parsing;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -278,12 +279,25 @@ public class ASTNode extends SimpleNode {
         return (ASTNode) jjtGetChild(1);
     }
     
+    public ASTNode getThirdChild() {
+        return (ASTNode) jjtGetChild(2);
+    }
+    
+    public ASTNode getFourthChild() {
+        return (ASTNode) jjtGetChild(3);
+    }
+    
     public String toCppVariableName() {
         String result = name;
+        boolean isArray = getValueAsBoolean("isArray");
+        if (isArray) {
+            ASTNode expression = getFirstChild();
+            result += "[" + expression.toCppExpression() + "]";
+        }
         for (int i = 0; i < jjtGetNumChildren(); ++i) {
             ASTNode child = (ASTNode) jjtGetChild(i);
             if (child.getNodeName().equals("Variable")) {
-                result += "." + child.name;
+                result += "." + child.toCppVariableName();
             }
         }
         return result;
@@ -295,20 +309,30 @@ public class ASTNode extends SimpleNode {
     }
 
     private String getExpressionAsString(ASTNode expression) {
+        assert expression.getNodeName().equals("Expression");
         ASTNode firstTerm = expression.getFirstChild();
         String result = getTermAsString(firstTerm);
-        int numberOfTerms = (Integer) expression.getValue("numberOfTerms");
-        if (numberOfTerms == 2) {
-            ASTNode secondTerm = expression.getSecondChild();
-            String operator = expression.getValueAsString("operator");
-            result += " " + operator + " " + getTermAsString(secondTerm);
+        List<String> operators = (List<String>)
+                expression.getValue("operators");
+        for (int i = 0; i < operators.size(); ++i) {
+            String operator = operators.get(i);
+            ASTNode term = (ASTNode) expression.jjtGetChild(i + 1);
+            result += " " + operator + " " + getTermAsString(term);
         }
         return result;
     }
 
     private String getTermAsString(ASTNode term) {
+        assert term.getNodeName().equals("Term");
         ASTNode firstFactor = term.getFirstChild();
         String result = getFactorAsString(firstFactor);
+        List<String> operators = (List<String>)
+                term.getValue("operators");
+        for (int i = 0; i < operators.size(); ++i) {
+            String operator = operators.get(i);
+            ASTNode factor = (ASTNode) term.jjtGetChild(i + 1);
+            result += " " + operator + " " + getFactorAsString(factor);
+        }
         return result;
     }
 
@@ -348,6 +372,21 @@ public class ASTNode extends SimpleNode {
     public boolean isAlwaysExecutable() {
         String nodeName = getNodeName();
         //TODO Determine which types of instructions are always executable
-        return nodeName.equals("Assignment");
+        return nodeName.equals("Assignment")
+                || nodeName.equals("Increment")
+                || nodeName.equals("Decrement")
+                || nodeName.equals("Else");
+    }
+
+    public String determineGuardType() {
+        //ASTNode elseNode = getFirstChild().getFirstChild();
+        ASTNode nextNode = getSecondChild().getFirstChild();
+        String nextNodeType = nextNode.getNodeName();
+        if (nextNodeType.equals("Break")) {
+            return "else -> break";
+        } else if (nextNodeType.equals("Skip")) {
+            return "else -> skip";
+        }
+        return "unknown guard type";
     }
 }

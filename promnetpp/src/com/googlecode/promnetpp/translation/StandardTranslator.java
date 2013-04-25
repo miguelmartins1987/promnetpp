@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.List;
@@ -59,8 +60,8 @@ public class StandardTranslator implements Translator {
     private String currentFunction;
     private Map<String, String> macros, nonMacros;
     private ASTNode lastWrittenInstruction;
-    
     private int currentStep = 0;
+    private int initialStep, lastStep;
     private boolean usingStepMap;
     private boolean initialStepWritten;
 
@@ -494,7 +495,6 @@ public class StandardTranslator implements Translator {
                     .equalsIgnoreCase("init")) {
                 return;
             }
-            System.out.println("Translating " + function.getName());
             StringWriter writer = template.getSpecificFunctionWriter(
                     function.getName());
             indent();
@@ -524,7 +524,8 @@ public class StandardTranslator implements Translator {
             headerFileWriter = new FileWriter(headerFileLocation);
             String headerFileContents = FileUtils.readFileToString(new File(
                     "templates/private/channel.h"));
-            headerFileContents = MessageFormat.format(headerFileContents, new Object[]{channel.toCppHeaderName(),
+            headerFileContents = MessageFormat.format(headerFileContents,
+                    new Object[]{channel.toCppHeaderName(),
                         channel.toCppClassName()});
             headerFileWriter.write(headerFileContents);
             headerFileWriter.close();
@@ -605,6 +606,11 @@ public class StandardTranslator implements Translator {
                 translateInstruction(blockInstruction.getFirstChild(), writer);
             }
         } else if (instructionType.equals("DoLoop")) {
+            initialStep = currentStep;
+            lastStep = initialStep + 2;
+            
+            Utilities.writeWithIndentation(writer, "//start of do loop\n",
+                    currentIndentationLevel);
             code = MessageFormat.format("if (step == {0}) '{'\n",
                     currentStep);
             Utilities.writeWithIndentation(writer, code,
@@ -618,10 +624,10 @@ public class StandardTranslator implements Translator {
                             writer);
                 }
             }
-            dedent();
-            Utilities.writeWithIndentation(writer, "}\n",
+            Utilities.writeWithIndentation(writer, "//end of do loop\n",
                     currentIndentationLevel);
         } else if (instructionType.equals("If")) {
+            ASTNode elseGuard = searchForElseGuard(instruction);
             for (int i = 0; i < instruction.jjtGetNumChildren(); ++i) {
                 ASTNode guard = (ASTNode) instruction.jjtGetChild(i);
                 //Might not be a condition at all; we must determine if the
@@ -638,37 +644,65 @@ public class StandardTranslator implements Translator {
                         Utilities.writeWithIndentation(writer, code,
                                 currentIndentationLevel);
                         indent();
-                        for (int j = 1; j < guard.jjtGetNumChildren(); ++j) {
+                        int numberOfInstructionsToWrite =
+                                guard.jjtGetNumChildren() - 1;
+                        for (int j = 1; numberOfInstructionsToWrite > 0;) {
                             ASTNode guardInstruction = (ASTNode)
                                     guard.jjtGetChild(j);
                             translateInstruction(
-                                    guardInstruction.getFirstChild(), writer);
+                                    guardInstruction.getFirstChild(),
+                                    writer);
                             if (!lastWrittenInstruction.isAlwaysExecutable()) {
-                                break;
+                                ++currentStep;
+                                closeIfBlock(writer, elseGuard);
+                                elseGuard = null;
+                                writeNewStepBlock(writer);
+                                /*
+                                if (currentStep < lastStep) {
+                                    writeNewStepBlock(writer);
+                                }
+                                */
                             }
+                            --numberOfInstructionsToWrite;
+                            ++j;
                         }
-                        dedent();
-                        Utilities.writeWithIndentation(writer, "} else {\n",
-                                currentIndentationLevel);
-                        indent();
-                        Utilities.writeWithIndentation(writer, "step = 3;\n",
-                                currentIndentationLevel);
-                        dedent();
-                        Utilities.writeWithIndentation(writer, "}\n",
-                                currentIndentationLevel);
                     }
+                } else {
+                    //TODO: What if it is always executable?
                 }
             }
+        } else if (instructionType.equals("ForLoop")) {
+            ASTNode rangeVariable = instruction.getFirstChild();
+            ASTNode from = instruction.getSecondChild();
+            ASTNode to = instruction.getThirdChild();
+            ASTNode instructions = instruction.getFourthChild();
+            code = MessageFormat.format("for ({0} = {1}; {0} <= {2}; ++{0})"
+                    + " '{'\n",
+                    new Object[]{rangeVariable.toCppVariableName(),
+                        from.toCppExpression(), to.toCppExpression()});
+            Utilities.writeWithIndentation(writer, code,
+                    currentIndentationLevel);
+            indent();
+            for (int i = 0; i < instructions.jjtGetNumChildren(); ++i) {
+                ASTNode forLoopInstruction =
+                        (ASTNode) instructions.jjtGetChild(i);
+                translateInstruction(forLoopInstruction.getFirstChild(),
+                        writer);
+            }
+            dedent();
+            Utilities.writeWithIndentation(writer, "}\n",
+                    currentIndentationLevel);
         } else if (instructionType.equals("Expression")) {
             Utilities.writeWithIndentation(writer, instruction.toCppExpression()
                     + ";\n", currentIndentationLevel);
-            if (!instruction.isAlwaysExecutable()) {
-                code = MessageFormat.format("save_location(\"{0}\", {1});\n",
-                        new Object[]{currentFunction, currentStep + 1});
-                Utilities.writeWithIndentation(writer, code,
-                        currentIndentationLevel);
-                ++currentStep;
-            }
+        } else if (instructionType.equals("Increment")) {
+            ASTNode variable = instruction.getFirstChild();
+            Utilities.writeWithIndentation(writer, variable.toCppVariableName()
+                    + "++;\n", currentIndentationLevel);
+        } else if (instructionType.equals("Decrement")) {
+            ASTNode variable = instruction.getFirstChild();
+            Utilities.writeWithIndentation(writer, variable.toCppVariableName()
+                    + "--;\n", currentIndentationLevel);
         }
         //Close initial step, if needed
         if (usingStepMap && currentStep == 1 && !initialStepWritten) {
@@ -681,5 +715,50 @@ public class StandardTranslator implements Translator {
         }
         //Save the last written instruction
         lastWrittenInstruction = instruction;
+    }
+
+    private void closeIfBlock(Writer writer, ASTNode elseGuard) {
+        dedent();
+        Utilities.writeWithIndentation(writer, "}\n", currentIndentationLevel);
+        if (elseGuard != null) {
+            String elseGuardType = elseGuard.determineGuardType();
+            if (elseGuardType.equals("else -> break")) {
+                Utilities.writeWithIndentation(writer, "else {\n",
+                        currentIndentationLevel);
+                indent();
+                Utilities.writeWithIndentation(writer, "step = " +
+                        lastStep + "\n", currentIndentationLevel);
+                dedent();
+                Utilities.writeWithIndentation(writer, "}\n",
+                        currentIndentationLevel);
+            }
+        }
+        if (currentStep == lastStep) {
+            String code = MessageFormat.format("save_location(\"{0}\", {1});\n",
+                    new Object[]{currentFunction, initialStep});
+            code += "scheduleAt(simTime(), empty_message);\n";
+            Utilities.writeWithIndentation(writer, code,
+                    currentIndentationLevel);
+        }
+        dedent();
+        Utilities.writeWithIndentation(writer, "}\n", currentIndentationLevel);
+    }
+
+    private void writeNewStepBlock(Writer writer) {
+        Utilities.writeWithIndentation(writer, MessageFormat.format(
+                "if (step == {0}) '{'\n", currentStep), currentIndentationLevel);
+        indent();
+    }
+
+    private ASTNode searchForElseGuard(ASTNode ifNode) {
+        for (int i = 0; i < ifNode.jjtGetNumChildren(); ++i) {
+            ASTNode guard = (ASTNode) ifNode.jjtGetChild(i);
+            ASTNode guardCondition = guard.getFirstChild().getFirstChild();
+            String guardConditionType = guardCondition.getNodeName();
+            if (guardConditionType.equals("Else")) {
+                return guard;
+            }
+        }
+        return null;
     }
 }
