@@ -58,9 +58,9 @@ void Process::receive() '{'
 
 //Specific functions
 void Process::compute_message() '{'
-    {1}
+{1}
 '}'
 
 void Process::state_transition() '{'
-    {2}
+{2}
 '}'

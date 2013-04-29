@@ -18,11 +18,11 @@ import com.googlecode.promnetpp.translation.nodes.Function;
 import com.googlecode.promnetpp.translation.nodes.Process;
 import com.googlecode.promnetpp.translation.templates.RoundBasedProtocolGeneric;
 import com.googlecode.promnetpp.translation.templates.Template;
+import com.googlecode.promnetpp.utilities.IndentedStringWriter;
+import com.googlecode.promnetpp.utilities.IndentedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.List;
@@ -40,10 +40,7 @@ import org.apache.commons.io.FileUtils;
  * @author Miguel Martins
  */
 public class StandardTranslator implements Translator {
-
-    //Indentation settings
-    private static final int SPACES_PER_TAB = 4;
-    private int currentIndentationLevel = 0;
+    
     //Whether the translator can skip units (except for annotated comments)
     //May change over time
     private static boolean canSkipUnits = false;
@@ -54,8 +51,8 @@ public class StandardTranslator implements Translator {
     //Init process
     private Process initProcess;
     //String writers for various purposes (one of them being type definitions)
-    private StringWriter typeDefinitions;
-    private StringWriter globalDeclarations, globalDefinitions;
+    private IndentedStringWriter typeDefinitions;
+    private IndentedStringWriter globalDeclarations, globalDefinitions;
     //Other
     private Map<String, Function> functions;
     private String currentFunction;
@@ -72,9 +69,9 @@ public class StandardTranslator implements Translator {
             Utilities.makeDirectory(Options.outputDirectory);
         }
         //Initialize writers
-        typeDefinitions = new StringWriter();
-        globalDeclarations = new StringWriter();
-        globalDefinitions = new StringWriter();
+        typeDefinitions = new IndentedStringWriter();
+        globalDeclarations = new IndentedStringWriter();
+        globalDefinitions = new IndentedStringWriter();
         //Initialize init process
         initProcess = new Process("init");
         //Initialize the various hash maps
@@ -152,26 +149,30 @@ public class StandardTranslator implements Translator {
                 new File(Options.outputDirectory + "/utilities.cc"));
     }
 
-    private void indent() {
-        currentIndentationLevel += SPACES_PER_TAB;
-    }
-
-    private void dedent() {
-        currentIndentationLevel -= SPACES_PER_TAB;
-    }
-
     @Override
     public void translate(AbstractSyntaxTree abstractSyntaxTree) {
-        doFirstPassesOnAST(abstractSyntaxTree);
+        try {
+            doFirstPassesOnAST(abstractSyntaxTree);
+        } catch (IOException ex) {
+            Logger.getLogger(StandardTranslator.class.getName()).log(
+                    Level.SEVERE, "Error while doing first passes on AST:", ex);
+        }
         //Make preparations
         makePreparationsBeforeFinalPass();
         //Final pass
         ASTNode rootNode = abstractSyntaxTree.getRootNode();
         ASTNode specification = (ASTNode) rootNode.jjtGetChild(0);
-        translateSpecification(specification);
+        try {
+            translateSpecification(specification);
+        } catch (IOException ex) {
+            Logger.getLogger(StandardTranslator.class.getName()).log(
+                    Level.SEVERE, "Error while translating the PROMELA"
+                    + " specification:", ex);
+        }
     }
 
-    private void translateSpecification(ASTNode specification) {
+    private void translateSpecification(ASTNode specification)
+            throws IOException {
         for (int i = 0; i < specification.jjtGetNumChildren(); ++i) {
             ASTNode element = (ASTNode) specification.jjtGetChild(i);
             String elementType = element.getNodeName();
@@ -181,7 +182,7 @@ public class StandardTranslator implements Translator {
         }
     }
 
-    private void translateUnit(ASTNode translationUnit) {
+    private void translateUnit(ASTNode translationUnit) throws IOException {
         ASTNode currentChild;
         String currentChildType;
         for (int i = 0; i < translationUnit.jjtGetNumChildren(); ++i) {
@@ -213,7 +214,8 @@ public class StandardTranslator implements Translator {
         }
     }
 
-    private void translateTypeDefinition(ASTNode typeDefinition) {
+    private void translateTypeDefinition(ASTNode typeDefinition) throws
+            IOException {
         String userTypeName = typeDefinition.getName();
         Logger.getLogger(StandardTranslator.class.getName()).log(Level.INFO,
                 "Found type definition (typeName={0})", userTypeName);
@@ -223,7 +225,7 @@ public class StandardTranslator implements Translator {
         }
 
         typeDefinitions.write("typedef struct {\n");
-        indent();
+        typeDefinitions.indent();
         for (int i = 0; i < typeDefinition.jjtGetNumChildren(); ++i) {
             ASTNode currentChild = (ASTNode) typeDefinition.jjtGetChild(i);
             if (currentChild.getNodeName().equals("SimpleDeclaration")) {
@@ -233,18 +235,16 @@ public class StandardTranslator implements Translator {
                 if (!isArray) {
                     String message = MessageFormat.format("{0} {1};\n",
                             typeName, name);
-                    Utilities.writeWithIndentation(typeDefinitions, message,
-                            currentIndentationLevel);
+                    typeDefinitions.write(message);
                 } else {
                     String message = MessageFormat.format("{0} {1}[{2}];\n",
                             typeName, name, currentChild.getValueAsString(
                             "arrayCapacity"));
-                    Utilities.writeWithIndentation(typeDefinitions, message,
-                            currentIndentationLevel);
+                    typeDefinitions.write(message);
                 }
             }
         }
-        dedent();
+        typeDefinitions.dedent();
         typeDefinitions.write(MessageFormat.format("'}' {0};", userTypeName));
         typeDefinitions.write("\n\n");
     }
@@ -264,7 +264,8 @@ public class StandardTranslator implements Translator {
         }
     }
 
-    private void handleDefineDirective(ASTNode defineDirective) {
+    private void handleDefineDirective(ASTNode defineDirective) throws
+            IOException {
         String defineDirectiveAsString = defineDirective.getValueAsString();
         globalDefinitions.write(defineDirectiveAsString);
 
@@ -300,7 +301,8 @@ public class StandardTranslator implements Translator {
         }
     }
 
-    private void translateGlobalDeclaration(ASTNode globalDeclaration) {
+    private void translateGlobalDeclaration(ASTNode globalDeclaration)
+            throws IOException {
         ASTNode simpleDeclaration = globalDeclaration.getFirstChild();
         String typeName = simpleDeclaration.getTypeName();
         String identifier = simpleDeclaration.getName();
@@ -397,7 +399,8 @@ public class StandardTranslator implements Translator {
         }
     }
 
-    private void doFirstPassesOnAST(AbstractSyntaxTree abstractSyntaxTree) {
+    private void doFirstPassesOnAST(AbstractSyntaxTree abstractSyntaxTree)
+            throws IOException {
         ASTNode rootNode = abstractSyntaxTree.getRootNode();
         ASTNode specification = (ASTNode) rootNode.jjtGetChild(0);
         ASTNode unit, unitChild;
@@ -484,7 +487,7 @@ public class StandardTranslator implements Translator {
         }
     }
 
-    private void translateFunction(Function function) {
+    private void translateFunction(Function function) throws IOException {
         currentFunction = function.getName();
         ASTNode instructions = function.getInstructions();
         assert instructions != null : "Function " + function.getName() + " has"
@@ -498,22 +501,21 @@ public class StandardTranslator implements Translator {
                     .equalsIgnoreCase("init")) {
                 return;
             }
-            StringWriter writer = template.getSpecificFunctionWriter(
+            IndentedStringWriter writer = template.getSpecificFunctionWriter(
                     function.getName());
+            writer.indent();
             if (function.requiresStepMap()) {
-                Utilities.writeWithIndentation(writer, MessageFormat.format(
-                        "int step = step_map[\"{0}\"];\n", function.getName()),
-                        currentIndentationLevel);
+                writer.write(MessageFormat.format("int step ="
+                        + " step_map[\"{0}\"];\n", function.getName()));
                 stepStack.push(0);
             }
 
             System.out.println("Translating " + currentFunction);
-            indent();
             for (int i = 0; i < instructions.jjtGetNumChildren(); ++i) {
                 ASTNode instruction = instructions.getChild(i);
                 translateInstruction(instruction, writer);
             }
-            dedent();
+            writer.dedent();
         }
     }
 
@@ -579,14 +581,16 @@ public class StandardTranslator implements Translator {
         }
     }
 
-    private void translateInstruction(ASTNode instruction, StringWriter writer) {
+    private void translateInstruction(ASTNode instruction, IndentedStringWriter
+            writer) throws IOException {
         String instructionType = instruction.getNodeName();
-        System.out.println(instructionType + "," + instruction.containsFunction("receive"));
+        System.out.println(instructionType + "," +
+                instruction.containsFunction("receive"));
 
         if (!stepStack.empty()) {
             currentStep = stepStack.pop();
             writeNewStepBlock(writer);
-            indent();
+            writer.indent();
         }
         boolean incrementStep = instruction.containsFunction("receive");
         if (instructionType.equals("Assignment")) {
@@ -604,16 +608,13 @@ public class StandardTranslator implements Translator {
         } else if (instructionType.equals("ForLoop")) {
             translateForLoop(instruction, writer);
         } else if (instructionType.equals("Expression")) {
-            Utilities.writeWithIndentation(writer, instruction.toCppExpression()
-                    + ";\n", currentIndentationLevel);
+            writer.write(instruction.toCppExpression() + ";\n");
         } else if (instructionType.equals("Increment")) {
             ASTNode variable = instruction.getFirstChild();
-            Utilities.writeWithIndentation(writer, variable.toCppVariableName()
-                    + "++;\n", currentIndentationLevel);
+            writer.write(variable.toCppVariableName() + "++;\n");
         } else if (instructionType.equals("Decrement")) {
             ASTNode variable = instruction.getFirstChild();
-            Utilities.writeWithIndentation(writer, variable.toCppVariableName()
-                    + "--;\n", currentIndentationLevel);
+            writer.write(variable.toCppVariableName() + "--;\n");
         }
         //Close the current step block, if any
         if (inStepBlock) {
@@ -623,40 +624,37 @@ public class StandardTranslator implements Translator {
         lastWrittenInstruction = instruction;
     }
 
-    private void closeIfBlock(Writer writer, ASTNode elseGuard) {
-        dedent();
-        Utilities.writeWithIndentation(writer, "}\n", currentIndentationLevel);
+    private void closeIfBlock(IndentedWriter writer, ASTNode elseGuard)
+            throws IOException {
+        writer.dedent();
+        writer.write("}\n");
         if (elseGuard != null) {
             String elseGuardType = elseGuard.determineGuardType();
             if (elseGuardType.equals("else -> break")) {
-                Utilities.writeWithIndentation(writer, "else {\n",
-                        currentIndentationLevel);
-                indent();
-                Utilities.writeWithIndentation(writer, "step = "
-                        + lastStep + "\n", currentIndentationLevel);
-                dedent();
-                Utilities.writeWithIndentation(writer, "}\n",
-                        currentIndentationLevel);
+                writer.write("else {\n");
+                writer.indent();
+                writer.write("step = " + lastStep + "\n");
+                writer.dedent();
+                writer.write("}\n");
             }
         }
-        dedent();
-        Utilities.writeWithIndentation(writer, "}\n", currentIndentationLevel);
+        writer.dedent();
+        writer.write("}\n");
     }
 
-    private void writeNewStepBlock(Writer writer) {
-        Utilities.writeWithIndentation(writer, MessageFormat.format(
-                "if (step == {0}) '{'\n", currentStep),
-                currentIndentationLevel);
+    private void writeNewStepBlock(IndentedWriter writer) throws IOException {
+        writer.write(MessageFormat.format("if (step == {0}) '{'\n",
+                currentStep));
         inStepBlock = true;
     }
 
-    private void closeStepBlock(Writer writer, boolean incrementStep) {
+    private void closeStepBlock(IndentedWriter writer, boolean incrementStep)
+            throws IOException {
         if (incrementStep) {
-            Utilities.writeWithIndentation(writer, "++step;\n",
-                    currentIndentationLevel);
+            writer.write("++step;\n");
         }
-        dedent();
-        Utilities.writeWithIndentation(writer, "}\n", currentIndentationLevel);
+        writer.dedent();
+        writer.write("}\n");
         ++currentStep;
         stepStack.push(currentStep);
     }
@@ -673,7 +671,8 @@ public class StandardTranslator implements Translator {
         return null;
     }
 
-    private void translateAssignment(ASTNode instruction, StringWriter writer) {
+    private void translateAssignment(ASTNode instruction, IndentedStringWriter
+            writer) throws IOException {
         ASTNode variable = instruction.getFirstChild();
         ASTNode expression = instruction.getSecondChild();
         String translatedAssignment = "{0} = {1};\n";
@@ -681,30 +680,29 @@ public class StandardTranslator implements Translator {
         String translatedExpression = expression.toCppExpression();
         translatedAssignment = MessageFormat.format(translatedAssignment,
                 new Object[]{translatedVariable, translatedExpression});
-        Utilities.writeWithIndentation(writer, translatedAssignment,
-                currentIndentationLevel);
+        writer.write(translatedAssignment);
     }
 
-    private void translateDoLoop(ASTNode instruction, StringWriter writer) {
+    private void translateDoLoop(ASTNode instruction, IndentedStringWriter
+            writer) throws IOException {
         initialStep = currentStep;
         lastStep = initialStep + 2;
-        Utilities.writeWithIndentation(writer, "//start of do loop\n",
-                currentIndentationLevel);
+        writer.write("//start of do loop\n");
         String code = MessageFormat.format("if (step == {0}) '{'\n",
                 currentStep);
-        Utilities.writeWithIndentation(writer, code, currentIndentationLevel);
-        indent();
+        writer.write(code);
+        writer.indent();
         for (int i = 0; i < instruction.jjtGetNumChildren(); ++i) {
             ASTNode guard = instruction.getChild(i);
             for (int j = 0; j < guard.jjtGetNumChildren(); ++j) {
                 translateInstruction(guard.getChild(j), writer);
             }
         }
-        Utilities.writeWithIndentation(writer, "//end of do loop\n",
-                currentIndentationLevel);
+        writer.write("//end of do loop\n");
     }
 
-    private void translateIf(ASTNode instruction, StringWriter writer) {
+    private void translateIf(ASTNode instruction, IndentedStringWriter writer)
+            throws IOException {
         ASTNode elseGuard = searchForElseGuard(instruction);
         for (int i = 0; i < instruction.jjtGetNumChildren(); ++i) {
             ASTNode guard = instruction.getChild(i);
@@ -720,9 +718,8 @@ public class StandardTranslator implements Translator {
                 if (condition != null) {
                     String code = MessageFormat.format("if ({0}) '{'\n",
                             condition);
-                    Utilities.writeWithIndentation(writer, code,
-                            currentIndentationLevel);
-                    indent();
+                    writer.write(code);
+                    writer.indent();
                     int numberOfInstructionsToWrite = guard.jjtGetNumChildren()
                             - 1;
                     for (int j = 1; numberOfInstructionsToWrite > 0;) {
@@ -738,11 +735,12 @@ public class StandardTranslator implements Translator {
                 }
             }
         }
-        dedent();
-        Utilities.writeWithIndentation(writer, "}\n", currentIndentationLevel);
+        writer.dedent();
+        writer.write("}\n");
     }
 
-    private void translateForLoop(ASTNode instruction, StringWriter writer) {
+    private void translateForLoop(ASTNode instruction,
+            IndentedStringWriter writer) throws IOException {
         ASTNode rangeVariable = instruction.getChild(0);
         ASTNode from = instruction.getChild(1);
         ASTNode to = instruction.getChild(2);
@@ -750,12 +748,12 @@ public class StandardTranslator implements Translator {
         String code = MessageFormat.format("for ({0} = {1}; {0} <= {2}; ++{0})"
                 + " '{'\n", new Object[]{rangeVariable.toCppVariableName(),
                     from.toCppExpression(), to.toCppExpression()});
-        Utilities.writeWithIndentation(writer, code, currentIndentationLevel);
-        indent();
+        writer.write(code);
+        writer.indent();
         for (int i = 0; i < instructions.jjtGetNumChildren(); ++i) {
             translateInstruction(instructions.getChild(i), writer);
         }
-        dedent();
-        Utilities.writeWithIndentation(writer, "}\n", currentIndentationLevel);
+        writer.dedent();
+        writer.write("}\n");
     }
 }
