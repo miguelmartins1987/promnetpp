@@ -10,6 +10,7 @@
 package com.googlecode.promnetpp.translation.templates;
 
 import com.googlecode.promnetpp.options.Options;
+import com.googlecode.promnetpp.utilities.IndentedStringWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -33,7 +34,7 @@ public abstract class Template {
     protected Map<String, String> dynamicFileContents;
     protected String currentBlock;
     //Meant for specific functions
-    protected Map<String, StringWriter> specificFunctionWriters;
+    protected Map<String, IndentedStringWriter> specificFunctionWriters;
     
 
     public Template() {
@@ -41,7 +42,7 @@ public abstract class Template {
         dynamicFileNames = new ArrayList<String>();
         dynamicFileContents = new HashMap<String, String>();
         currentBlock = "main";
-        specificFunctionWriters = new HashMap<String, StringWriter>();
+        specificFunctionWriters = new HashMap<String, IndentedStringWriter>();
     }
     
     public static Template getTemplate(String templateName) {
@@ -97,10 +98,10 @@ public abstract class Template {
         currentBlock = blockName;
     }
     
-    public StringWriter getSpecificFunctionWriter(String functionName) {
-        StringWriter writer = specificFunctionWriters.get(functionName);
+    public IndentedStringWriter getSpecificFunctionWriter(String functionName) {
+        IndentedStringWriter writer = specificFunctionWriters.get(functionName);
         if (writer == null) {
-            writer = new StringWriter();
+            writer = new IndentedStringWriter();
             specificFunctionWriters.put(functionName, writer);
         }
         return writer;
