@@ -111,13 +111,21 @@ public class Function {
     }    
 
     public void analyze() {
+        System.out.println("Analyzing " + name + "...");
         analyzeInstructions();
+        System.out.println("Analysis on " + name + " complete.");
+        if (requiresStepMap) {
+            System.out.println(name + " requires a step map.");
+        } else {
+            System.out.println(name + " does not require a step map.");
+        }
+        System.out.println("-------------------------------------------------");
     }
 
     private void analyzeInstructions() {
         for (int i = 0; i < instructions.jjtGetNumChildren(); ++i) {
             ASTNode instruction = (ASTNode) instructions.jjtGetChild(i);
-            analyzeInstruction(instruction.getFirstChild());
+            analyzeInstruction(instruction);
         }
     }
 
@@ -126,12 +134,26 @@ public class Function {
         if (instructionType.equals("DStepBlock")) {
             ASTNode blockInstructions = instruction.getFirstChild();
             for (int i = 0; i < blockInstructions.jjtGetNumChildren(); ++i) {
-                ASTNode blockInstruction = (ASTNode)
-                        blockInstructions.jjtGetChild(i);
-                analyzeInstruction(blockInstruction.getFirstChild());
+                analyzeInstruction(blockInstructions.getChild(i));
             }
         } else if (instructionType.equals("DoLoop")) {
             requiresStepMap = true;
+        } else if (instructionType.equals("ForLoop")) {
+            ASTNode loopInstructions = instruction.getChild(3);
+            for (int i = 0; i < loopInstructions.jjtGetNumChildren(); ++i) {
+                analyzeInstruction(loopInstructions.getChild(i));
+            }
+        } else if (instructionType.equals("If")) {
+            for (int i = 0; i < instruction.jjtGetNumChildren(); ++i) {
+                ASTNode guard = (ASTNode) instruction.jjtGetChild(i);
+                for (int j = 0; j < guard.jjtGetNumChildren(); ++j) {
+                    analyzeInstruction(guard.getChild(j));
+                }
+            }
+        } else if (instructionType.equals("Expression")) {
+            if (instruction.isFunctionCall()) {
+                requiresStepMap = true;
+            }
         }
     }
 }

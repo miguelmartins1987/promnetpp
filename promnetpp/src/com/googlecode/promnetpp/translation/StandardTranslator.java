@@ -27,6 +27,7 @@ import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
@@ -62,8 +63,8 @@ public class StandardTranslator implements Translator {
     private ASTNode lastWrittenInstruction;
     private int currentStep = 0;
     private int initialStep, lastStep;
-    private boolean usingStepMap;
-    private boolean initialStepWritten;
+    private Stack<Integer> stepStack;
+    private boolean inStepBlock;
 
     @Override
     public void init() {
@@ -81,6 +82,8 @@ public class StandardTranslator implements Translator {
         macros = new HashMap<String, String>();
         nonMacros = new HashMap<String, String>();
         processes = new HashMap<String, Process>();
+        //Other
+        stepStack = new Stack<Integer>();
 
         Logger.getLogger(StandardTranslator.class.getName()).log(Level.INFO,
                 "Translation process ready. Output directory: {0}",
@@ -497,22 +500,21 @@ public class StandardTranslator implements Translator {
             }
             StringWriter writer = template.getSpecificFunctionWriter(
                     function.getName());
-            indent();
             if (function.requiresStepMap()) {
                 Utilities.writeWithIndentation(writer, MessageFormat.format(
                         "int step = step_map[\"{0}\"];\n", function.getName()),
                         currentIndentationLevel);
-                usingStepMap = true;
+                stepStack.push(0);
             }
+
+            System.out.println("Translating " + currentFunction);
+            indent();
             for (int i = 0; i < instructions.jjtGetNumChildren(); ++i) {
-                ASTNode instruction = (ASTNode) instructions.jjtGetChild(i);
-                instruction = instruction.getFirstChild();
+                ASTNode instruction = instructions.getChild(i);
                 translateInstruction(instruction, writer);
             }
             dedent();
         }
-        initialStepWritten = false;
-        usingStepMap = false;
     }
 
     private void translateChannel(Channel channel) {
@@ -578,120 +580,29 @@ public class StandardTranslator implements Translator {
     }
 
     private void translateInstruction(ASTNode instruction, StringWriter writer) {
-        String code;
         String instructionType = instruction.getNodeName();
-        System.out.println(instructionType);
-        //Write initial step, if needed
-        if (usingStepMap && currentStep == 0 && !initialStepWritten) {
-            Utilities.writeWithIndentation(writer,
-                    "if (step == 0) {\n", currentIndentationLevel);
-            ++currentStep;
+        System.out.println(instructionType + "," + instruction.containsFunction("receive"));
+
+        if (!stepStack.empty()) {
+            currentStep = stepStack.pop();
+            writeNewStepBlock(writer);
             indent();
         }
-        //Perform the actual translation
+        boolean incrementStep = instruction.containsFunction("receive");
         if (instructionType.equals("Assignment")) {
-            ASTNode variable = instruction.getFirstChild();
-            ASTNode expression = instruction.getSecondChild();
-            String translatedAssignment = "{0} = {1};\n";
-            String translatedVariable = variable.toCppVariableName();
-            String translatedExpression = expression.toCppExpression();
-            translatedAssignment = MessageFormat.format(translatedAssignment,
-                    new Object[]{translatedVariable, translatedExpression});
-            Utilities.writeWithIndentation(writer, translatedAssignment,
-                    currentIndentationLevel);
+            translateAssignment(instruction, writer);
         } else if (instructionType.equals("DStepBlock")) {
+            //Just translate the instructions inside the d_step block
             ASTNode blockInstructions = instruction.getFirstChild();
             for (int i = 0; i < blockInstructions.jjtGetNumChildren(); ++i) {
-                ASTNode blockInstruction = (ASTNode) blockInstructions.jjtGetChild(i);
-                translateInstruction(blockInstruction.getFirstChild(), writer);
+                translateInstruction(blockInstructions.getChild(i), writer);
             }
         } else if (instructionType.equals("DoLoop")) {
-            initialStep = currentStep;
-            lastStep = initialStep + 2;
-            
-            Utilities.writeWithIndentation(writer, "//start of do loop\n",
-                    currentIndentationLevel);
-            code = MessageFormat.format("if (step == {0}) '{'\n",
-                    currentStep);
-            Utilities.writeWithIndentation(writer, code,
-                    currentIndentationLevel);
-            indent();
-            for (int i = 0; i < instruction.jjtGetNumChildren(); ++i) {
-                ASTNode guard = (ASTNode) instruction.jjtGetChild(i);
-                for (int j = 0; j < guard.jjtGetNumChildren(); ++j) {
-                    ASTNode guardInstruction = (ASTNode) guard.jjtGetChild(j);
-                    translateInstruction(guardInstruction.getFirstChild(),
-                            writer);
-                }
-            }
-            Utilities.writeWithIndentation(writer, "//end of do loop\n",
-                    currentIndentationLevel);
+            translateDoLoop(instruction, writer);
         } else if (instructionType.equals("If")) {
-            ASTNode elseGuard = searchForElseGuard(instruction);
-            for (int i = 0; i < instruction.jjtGetNumChildren(); ++i) {
-                ASTNode guard = (ASTNode) instruction.jjtGetChild(i);
-                //Might not be a condition at all; we must determine if the
-                //statement is executable or not first
-                ASTNode guardCondition = guard.getFirstChild().getFirstChild();
-                if (!guardCondition.isAlwaysExecutable()) {
-                    String condition = null;
-                    String conditionType = guardCondition.getNodeName();
-                    if (conditionType.equals("Expression")) {
-                        condition = guardCondition.toCppExpression();
-                    }
-                    if (condition != null) {
-                        code = MessageFormat.format("if ({0}) '{'\n", condition);
-                        Utilities.writeWithIndentation(writer, code,
-                                currentIndentationLevel);
-                        indent();
-                        int numberOfInstructionsToWrite =
-                                guard.jjtGetNumChildren() - 1;
-                        for (int j = 1; numberOfInstructionsToWrite > 0;) {
-                            ASTNode guardInstruction = (ASTNode)
-                                    guard.jjtGetChild(j);
-                            translateInstruction(
-                                    guardInstruction.getFirstChild(),
-                                    writer);
-                            if (!lastWrittenInstruction.isAlwaysExecutable()) {
-                                ++currentStep;
-                                closeIfBlock(writer, elseGuard);
-                                elseGuard = null;
-                                writeNewStepBlock(writer);
-                                /*
-                                if (currentStep < lastStep) {
-                                    writeNewStepBlock(writer);
-                                }
-                                */
-                            }
-                            --numberOfInstructionsToWrite;
-                            ++j;
-                        }
-                    }
-                } else {
-                    //TODO: What if it is always executable?
-                }
-            }
+            translateIf(instruction, writer);
         } else if (instructionType.equals("ForLoop")) {
-            ASTNode rangeVariable = instruction.getFirstChild();
-            ASTNode from = instruction.getSecondChild();
-            ASTNode to = instruction.getThirdChild();
-            ASTNode instructions = instruction.getFourthChild();
-            code = MessageFormat.format("for ({0} = {1}; {0} <= {2}; ++{0})"
-                    + " '{'\n",
-                    new Object[]{rangeVariable.toCppVariableName(),
-                        from.toCppExpression(), to.toCppExpression()});
-            Utilities.writeWithIndentation(writer, code,
-                    currentIndentationLevel);
-            indent();
-            for (int i = 0; i < instructions.jjtGetNumChildren(); ++i) {
-                ASTNode forLoopInstruction =
-                        (ASTNode) instructions.jjtGetChild(i);
-                translateInstruction(forLoopInstruction.getFirstChild(),
-                        writer);
-            }
-            dedent();
-            Utilities.writeWithIndentation(writer, "}\n",
-                    currentIndentationLevel);
+            translateForLoop(instruction, writer);
         } else if (instructionType.equals("Expression")) {
             Utilities.writeWithIndentation(writer, instruction.toCppExpression()
                     + ";\n", currentIndentationLevel);
@@ -704,14 +615,9 @@ public class StandardTranslator implements Translator {
             Utilities.writeWithIndentation(writer, variable.toCppVariableName()
                     + "--;\n", currentIndentationLevel);
         }
-        //Close initial step, if needed
-        if (usingStepMap && currentStep == 1 && !initialStepWritten) {
-            Utilities.writeWithIndentation(writer,
-                    "++step;\n", currentIndentationLevel);
-            dedent();
-            Utilities.writeWithIndentation(writer,
-                    "}\n", currentIndentationLevel);
-            initialStepWritten = true;
+        //Close the current step block, if any
+        if (inStepBlock) {
+            closeStepBlock(writer, incrementStep);
         }
         //Save the last written instruction
         lastWrittenInstruction = instruction;
@@ -726,19 +632,12 @@ public class StandardTranslator implements Translator {
                 Utilities.writeWithIndentation(writer, "else {\n",
                         currentIndentationLevel);
                 indent();
-                Utilities.writeWithIndentation(writer, "step = " +
-                        lastStep + "\n", currentIndentationLevel);
+                Utilities.writeWithIndentation(writer, "step = "
+                        + lastStep + "\n", currentIndentationLevel);
                 dedent();
                 Utilities.writeWithIndentation(writer, "}\n",
                         currentIndentationLevel);
             }
-        }
-        if (currentStep == lastStep) {
-            String code = MessageFormat.format("save_location(\"{0}\", {1});\n",
-                    new Object[]{currentFunction, initialStep});
-            code += "scheduleAt(simTime(), empty_message);\n";
-            Utilities.writeWithIndentation(writer, code,
-                    currentIndentationLevel);
         }
         dedent();
         Utilities.writeWithIndentation(writer, "}\n", currentIndentationLevel);
@@ -746,19 +645,117 @@ public class StandardTranslator implements Translator {
 
     private void writeNewStepBlock(Writer writer) {
         Utilities.writeWithIndentation(writer, MessageFormat.format(
-                "if (step == {0}) '{'\n", currentStep), currentIndentationLevel);
-        indent();
+                "if (step == {0}) '{'\n", currentStep),
+                currentIndentationLevel);
+        inStepBlock = true;
+    }
+
+    private void closeStepBlock(Writer writer, boolean incrementStep) {
+        if (incrementStep) {
+            Utilities.writeWithIndentation(writer, "++step;\n",
+                    currentIndentationLevel);
+        }
+        dedent();
+        Utilities.writeWithIndentation(writer, "}\n", currentIndentationLevel);
+        ++currentStep;
+        stepStack.push(currentStep);
     }
 
     private ASTNode searchForElseGuard(ASTNode ifNode) {
         for (int i = 0; i < ifNode.jjtGetNumChildren(); ++i) {
             ASTNode guard = (ASTNode) ifNode.jjtGetChild(i);
-            ASTNode guardCondition = guard.getFirstChild().getFirstChild();
+            ASTNode guardCondition = guard.getFirstChild();
             String guardConditionType = guardCondition.getNodeName();
             if (guardConditionType.equals("Else")) {
                 return guard;
             }
         }
         return null;
+    }
+
+    private void translateAssignment(ASTNode instruction, StringWriter writer) {
+        ASTNode variable = instruction.getFirstChild();
+        ASTNode expression = instruction.getSecondChild();
+        String translatedAssignment = "{0} = {1};\n";
+        String translatedVariable = variable.toCppVariableName();
+        String translatedExpression = expression.toCppExpression();
+        translatedAssignment = MessageFormat.format(translatedAssignment,
+                new Object[]{translatedVariable, translatedExpression});
+        Utilities.writeWithIndentation(writer, translatedAssignment,
+                currentIndentationLevel);
+    }
+
+    private void translateDoLoop(ASTNode instruction, StringWriter writer) {
+        initialStep = currentStep;
+        lastStep = initialStep + 2;
+        Utilities.writeWithIndentation(writer, "//start of do loop\n",
+                currentIndentationLevel);
+        String code = MessageFormat.format("if (step == {0}) '{'\n",
+                currentStep);
+        Utilities.writeWithIndentation(writer, code, currentIndentationLevel);
+        indent();
+        for (int i = 0; i < instruction.jjtGetNumChildren(); ++i) {
+            ASTNode guard = instruction.getChild(i);
+            for (int j = 0; j < guard.jjtGetNumChildren(); ++j) {
+                translateInstruction(guard.getChild(j), writer);
+            }
+        }
+        Utilities.writeWithIndentation(writer, "//end of do loop\n",
+                currentIndentationLevel);
+    }
+
+    private void translateIf(ASTNode instruction, StringWriter writer) {
+        ASTNode elseGuard = searchForElseGuard(instruction);
+        for (int i = 0; i < instruction.jjtGetNumChildren(); ++i) {
+            ASTNode guard = instruction.getChild(i);
+            //Might not be a condition at all; we must determine if the
+            //statement is executable or not first
+            ASTNode guardCondition = guard.getFirstChild();
+            if (!guardCondition.isAlwaysExecutable()) {
+                String condition = null;
+                String conditionType = guardCondition.getNodeName();
+                if (conditionType.equals("Expression")) {
+                    condition = guardCondition.toCppExpression();
+                }
+                if (condition != null) {
+                    String code = MessageFormat.format("if ({0}) '{'\n",
+                            condition);
+                    Utilities.writeWithIndentation(writer, code,
+                            currentIndentationLevel);
+                    indent();
+                    int numberOfInstructionsToWrite = guard.jjtGetNumChildren()
+                            - 1;
+                    for (int j = 1; numberOfInstructionsToWrite > 0;) {
+                        translateInstruction(guard.getChild(j), writer);
+                        if (!lastWrittenInstruction.isAlwaysExecutable()) {
+                            closeIfBlock(writer, elseGuard);
+                            elseGuard = null;
+                            writeNewStepBlock(writer);
+                        }
+                        --numberOfInstructionsToWrite;
+                        ++j;
+                    }
+                }
+            }
+        }
+        dedent();
+        Utilities.writeWithIndentation(writer, "}\n", currentIndentationLevel);
+    }
+
+    private void translateForLoop(ASTNode instruction, StringWriter writer) {
+        ASTNode rangeVariable = instruction.getChild(0);
+        ASTNode from = instruction.getChild(1);
+        ASTNode to = instruction.getChild(2);
+        ASTNode instructions = instruction.getChild(3);
+        String code = MessageFormat.format("for ({0} = {1}; {0} <= {2}; ++{0})"
+                + " '{'\n", new Object[]{rangeVariable.toCppVariableName(),
+                    from.toCppExpression(), to.toCppExpression()});
+        Utilities.writeWithIndentation(writer, code, currentIndentationLevel);
+        indent();
+        for (int i = 0; i < instructions.jjtGetNumChildren(); ++i) {
+            translateInstruction(instructions.getChild(i), writer);
+        }
+        dedent();
+        Utilities.writeWithIndentation(writer, "}\n", currentIndentationLevel);
     }
 }

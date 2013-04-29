@@ -169,7 +169,8 @@ Token arrayCapacity;}
 
 void MultiDeclaration() : {}
 {
-    TypeName() <IDENTIFIER> ("," <IDENTIFIER>)+
+    TypeName() <IDENTIFIER> ["=" Expression()]
+    ("," <IDENTIFIER> ["=" Expression()])+
 }
 
 String TypeName() : {Token identifier;}
@@ -215,13 +216,13 @@ void InstructionList() : {}
     (Instruction())+
 }
 
-void Instruction() : {}
+void Instruction() #void : {}
 {
-    NonBlockInstruction() [("->" | ";")]
-    | BlockInstruction()
+    TypeAInstruction() [("->" | ";")]
+    | TypeBInstruction()
 }
 
-void NonBlockInstruction() #void : {}
+void TypeAInstruction() #void : {}
 {
     /* variable++ and variable-- */
     LOOKAHEAD(Increment()) Increment()
@@ -356,6 +357,8 @@ void Factor() : {Token literal; String factorType = null;
     (
     //It might contain an expression enclosed in parentheses
     "(" Expression() ")" { factorType = "expressionParentheses"; }
+    //It might be the negation of an expression
+    | "!" Expression() { factorType = "negation"; }
     //Literals and constants go here
     | literal = <INTEGER_LITERAL> { factorType = "integerLiteral"; factorValue = literal.image; }
     | literal = <STRING_LITERAL> { factorType = "stringLiteral"; factorValue = literal.image; }
@@ -389,7 +392,7 @@ void FunctionCallParameters() : {}
     Expression() ("," Expression())*
 }
 
-void BlockInstruction() #void : {}
+void TypeBInstruction() #void : {}
 {
     AtomicBlock()
     | DStepBlock()
