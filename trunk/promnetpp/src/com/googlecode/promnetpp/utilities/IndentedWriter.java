@@ -23,6 +23,7 @@ public abstract class IndentedWriter extends Writer {
     protected int numberOfSpacesPerIndentation;
     protected int numberOfTabsPerIndentation;
     //Current indentation
+    protected int indentationLevel;
     protected int currentNumberOfSpaces;
     protected int currentNumberOfTabs;
     
@@ -37,11 +38,17 @@ public abstract class IndentedWriter extends Writer {
     public void indent() {
         currentNumberOfSpaces += numberOfSpacesPerIndentation;
         currentNumberOfTabs += numberOfTabsPerIndentation;
+        ++indentationLevel;   
     }
     
     public void dedent() {
         currentNumberOfSpaces -= numberOfSpacesPerIndentation;
         currentNumberOfTabs -= numberOfTabsPerIndentation;
+        --indentationLevel;
+    }
+
+    public int getIndentationLevel() {
+        return indentationLevel;
     }
 
     @Override
