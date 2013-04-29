@@ -279,12 +279,8 @@ public class ASTNode extends SimpleNode {
         return (ASTNode) jjtGetChild(1);
     }
     
-    public ASTNode getThirdChild() {
-        return (ASTNode) jjtGetChild(2);
-    }
-    
-    public ASTNode getFourthChild() {
-        return (ASTNode) jjtGetChild(3);
+    public ASTNode getChild(int childIndex) {
+        return (ASTNode) jjtGetChild(childIndex);
     }
     
     public String toCppVariableName() {
@@ -375,12 +371,12 @@ public class ASTNode extends SimpleNode {
         return nodeName.equals("Assignment")
                 || nodeName.equals("Increment")
                 || nodeName.equals("Decrement")
-                || nodeName.equals("Else");
+                || nodeName.equals("Else")
+                || nodeName.endsWith("Loop");
     }
 
     public String determineGuardType() {
-        //ASTNode elseNode = getFirstChild().getFirstChild();
-        ASTNode nextNode = getSecondChild().getFirstChild();
+        ASTNode nextNode = getSecondChild();
         String nextNodeType = nextNode.getNodeName();
         if (nextNodeType.equals("Break")) {
             return "else -> break";
@@ -388,5 +384,58 @@ public class ASTNode extends SimpleNode {
             return "else -> skip";
         }
         return "unknown guard type";
+    }
+    
+    public boolean isFunctionCall() {
+        if (getNodeName().equals("Expression")) {
+            if (hasSingleChild()) {
+                ASTNode term = getFirstChild();
+                if (term.hasSingleChild()) {
+                    ASTNode factor = term.getFirstChild();
+                    String factorType = factor.getValueAsString("factorType");
+                    if (factorType.equals("functionCall")) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    
+    public String getCalledFunctionName() {
+        ASTNode factor = getFirstChild().getFirstChild();
+        ASTNode functionCall = factor.getFirstChild();
+        return functionCall.getValueAsString("functionName");
+    }
+
+    public boolean containsFunction(String functionName) {
+        String instructionType = getNodeName();
+        if (instructionType.equals("Expression")) {
+            if (isFunctionCall()) {
+                String _functionName = getCalledFunctionName();
+                if (_functionName.equals(functionName)) {
+                    return true;
+                }
+            }
+        }
+        else if (instructionType.equals("DStepBlock")) {
+            ASTNode instructions = getFirstChild();
+            for (int i = 0; i < instructions.jjtGetNumChildren(); ++i) {
+                ASTNode instruction = (ASTNode) instructions.jjtGetChild(i);
+                if (instruction.getFirstChild().containsFunction(functionName)) {
+                    return true;
+                }
+            }
+        }
+        else if (instructionType.equals("ForLoop")) {
+            ASTNode instructions = getChild(3);
+            for (int i = 0; i < instructions.jjtGetNumChildren(); ++i) {
+                ASTNode instruction = (ASTNode) instructions.jjtGetChild(i);
+                if (instruction.getFirstChild().containsFunction(functionName)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

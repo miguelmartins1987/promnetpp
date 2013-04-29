@@ -132,6 +132,7 @@ public class Main {
         } catch (ParseException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE,
                     "Error while parsing the input file!", ex);
+            System.err.println(ex);
         }
         assert abstractSyntaxTree != null : "Could not build an"
                 + " abstract syntax tree!";
