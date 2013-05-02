@@ -626,7 +626,9 @@ public class StandardTranslator implements Translator {
             stepStack.push(currentStep);
         }
         if (nextInstruction != null) {
-            if (nextInstruction.containsFunction("receive")) {
+            String nextInstructionType = nextInstruction.getNodeName();
+            if (nextInstructionType.equals("ForLoop")) {
+                writeStepIncrement(writer);
                 closeBlock(writer);
                 ++currentStep;
                 writeNewStepBlock(writer);
@@ -742,9 +744,18 @@ public class StandardTranslator implements Translator {
         ASTNode from = forLoop.getChild(1);
         ASTNode to = forLoop.getChild(2);
         ASTNode instructions = forLoop.getChild(3);
-        String code = MessageFormat.format("for ({0} = {1}; {0} <= {2}; ++{0})"
-                + " '{'\n", new Object[]{rangeVariable.toCppVariableName(),
-                    from.toCppExpression(), to.toCppExpression()});
+        writer.write("//Start of for loop\n");
+        String code = MessageFormat.format("{0} = {1};\n",
+                new Object[]{rangeVariable.toCppVariableName(),
+                    from.toCppExpression()});
+        writer.write(code);
+        writeStepIncrement(writer);
+        closeBlock(writer);
+        ++currentStep;
+        writeNewStepBlock(writer);
+        writer.indent();
+        code = MessageFormat.format("if ({0} < {1}) '{'\n", new Object[]{
+            rangeVariable.toCppVariableName(), to.toCppExpression()});
         writer.write(code);
         writer.indent();
         for (int i = 0; i < instructions.jjtGetNumChildren(); ++i) {
@@ -752,13 +763,21 @@ public class StandardTranslator implements Translator {
         }
         writer.dedent();
         writer.write("}\n");
+        closeBlock(writer);
+        //writer.write("++" + rangeVariable.toCppVariableName() + ";\n");
     }
 
+    
     private void fullyCloseBlock(IndentedStringWriter writer) throws
             IOException {
         for (int i = writer.getIndentationLevel(); i > 1; --i) {
             System.out.println(i);
             closeBlock(writer);
         }
+    }
+
+    private void writeStepIncrement(IndentedStringWriter writer)
+            throws IOException {
+        writer.write("++step;\n");
     }
 }
