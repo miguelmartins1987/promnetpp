@@ -19,6 +19,7 @@ import java.io.StringWriter;
 public class IndentedStringWriter extends IndentedWriter {
 
     public IndentedStringWriter() {
+        super();
         writer = new StringWriter();
     }
 

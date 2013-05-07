@@ -25,6 +25,8 @@
             <word>ProcessInterface</word>
             <word>proctype</word>
             <word>PROMELA</word>
+            <word>scheduleAt</word>
+            <word>simTime</word>
             <word>Utype</word>
         </spellchecker-wordlist>
     </configuration>
