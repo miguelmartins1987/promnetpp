@@ -41,10 +41,22 @@ public abstract class IndentedWriter extends Writer {
         ++indentationLevel;   
     }
     
+    public void indent(int numberOfLevels) {
+        for (int i = 0; i < numberOfLevels; ++i) {
+            indent();
+        }
+    }
+    
     public void dedent() {
         currentNumberOfSpaces -= numberOfSpacesPerIndentation;
         currentNumberOfTabs -= numberOfTabsPerIndentation;
         --indentationLevel;
+    }
+    
+    public void dedent(int numberOfLevels) {
+        for (int i = 0; i < numberOfLevels; ++i) {
+            dedent();
+        }
     }
 
     public int getIndentationLevel() {

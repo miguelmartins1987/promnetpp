@@ -1,4 +1,14 @@
 /*
+ * Copyright (c) 2013, Raul Barbosa
+ * Use is subject to license terms.
+ *
+ * This source code file is provided under the MIT License. Full licensing
+ * terms should be available in the form of text files. The standard source code
+ * distribution provides a LICENSE.txt file which can be consulted for licensing
+ * details.
+ */
+
+/*
 OneThirdRule in PROMELA
 Author: Raul B. Barbosa <rbarbosa@dei.uc.pt>
 Modified by Miguel Martins <marm@student.dei.uc.pt>
