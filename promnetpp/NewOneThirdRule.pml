@@ -19,7 +19,8 @@ Modifications were done on the specification provided on April 23 2013:
 -Annotations for PROMNeT++
 */
 
-/* @USES_TEMPLATE(template_name="round_based_protocol_generic") */
+/* @UsesTemplate(name="round_based_protocol_generic") */
+/* @TemplateParameter(name="numberOfParticipants") */
 #define NUMBER_OF_PROCESSES 3
 #define NUMBER_OF_ASYNCHRONOUS_ROUNDS 1
 
@@ -116,7 +117,7 @@ inline system_every_round() {
     }
 }
 
-/* @BEGIN_TEMPLATE_BLOCK(block_name="generic_part") */
+/* @BeginTemplateBlock(name="generic_part") */
 message messages[NUMBER_OF_PROCESSES];
 
 byte token;
@@ -176,4 +177,4 @@ init {
         token = NUMBER_OF_PROCESSES
     od
 }
-/* @END_TEMPLATE_BLOCK */
+/* @EndTemplateBlock */

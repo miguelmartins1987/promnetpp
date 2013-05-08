@@ -10,6 +10,7 @@
 package com.googlecode.promnetpp.translation.templates;
 
 import com.googlecode.promnetpp.options.Options;
+import com.googlecode.promnetpp.parsing.ASTNode;
 import com.googlecode.promnetpp.utilities.IndentedStringWriter;
 import java.io.File;
 import java.io.IOException;
@@ -105,5 +106,10 @@ public abstract class Template {
             specificFunctionWriters.put(functionName, writer);
         }
         return writer;
+    }
+
+    public void handleTemplateParameter(ASTNode directive,
+            String parameterName) {
+        throw new UnsupportedOperationException("Must be overridden!");
     }
 }

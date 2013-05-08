@@ -17,7 +17,6 @@ import com.googlecode.promnetpp.parsing.AbstractSyntaxTree;
 import com.googlecode.promnetpp.translation.nodes.Channel;
 import com.googlecode.promnetpp.translation.nodes.Function;
 import com.googlecode.promnetpp.translation.nodes.Process;
-import com.googlecode.promnetpp.translation.templates.RoundBasedProtocolGeneric;
 import com.googlecode.promnetpp.translation.templates.Template;
 import com.googlecode.promnetpp.utilities.IndentedStringWriter;
 import com.googlecode.promnetpp.utilities.IndentedWriter;
@@ -54,15 +53,17 @@ public class StandardTranslator implements Translator {
     //String writers for various purposes (one of them being type definitions)
     private IndentedStringWriter typeDefinitions;
     private IndentedStringWriter globalDeclarations, globalDefinitions;
+    //Stacks
+    private Stack<Integer> stepStack;
+    private Stack<String> templateParameters;
+    StackManager stackManager;
     //Other
     private Map<String, Function> functions;
     private String currentFunction;
     private Map<String, String> macros, nonMacros;
     private ASTNode lastWrittenInstruction;
     private int currentStep = 0;
-    private int initialStep, lastStep;
-    private Stack<Integer> stepStack;
-    StackManager stackManager;
+    private int initialStep;
 
     @Override
     public void init() {
@@ -83,6 +84,7 @@ public class StandardTranslator implements Translator {
         //Other
         stepStack = new Stack<Integer>();
         stackManager = new StackManager();
+        templateParameters = new Stack<String>();
 
         Logger.getLogger(StandardTranslator.class.getName()).log(Level.INFO,
                 "Translation process ready. Output directory: {0}",
@@ -193,6 +195,12 @@ public class StandardTranslator implements Translator {
             //Comment
             if (currentChildType.equals("Comment")) {
                 handleComment(currentChild);
+            } else if (currentChildType.equals("DefineDirective")) {
+                if (!templateParameters.empty()) {
+                    String parameterName = templateParameters.pop();
+                    template.handleTemplateParameter(currentChild,
+                            parameterName);
+                }
             } else {
                 if (!canSkipUnits) {
                     //Type definition (global)
@@ -207,9 +215,6 @@ public class StandardTranslator implements Translator {
                                 "functionName");
                         Function function = functions.get(functionName);
                         translateFunction(function);
-                    } //Process definitions
-                    else if (currentChildType.equals("ProcessDefinition")) {
-                        translateProcessDefinition(currentChild);
                     }
                 }
             }
@@ -283,17 +288,6 @@ public class StandardTranslator implements Translator {
             String directiveValue = defineDirectiveAsString.substring(
                     defineDirectiveAsString.indexOf(" ")).trim();
             nonMacros.put(directiveName, directiveValue);
-            //Template-related non-macros
-            if (template instanceof RoundBasedProtocolGeneric) {
-                if (directiveName.equals("NUMBER_OF_PROCESSES")) {
-                    int numberOfParticipants = Integer.parseInt(directiveValue);
-                    Logger.getLogger(StandardTranslator.class.getName()).log(
-                            Level.INFO, "RoundBasedProtocolGeneric will have "
-                            + "{0} participants.", numberOfParticipants);
-                    ((RoundBasedProtocolGeneric) template).
-                            setNumberOfParticipants(numberOfParticipants);
-                }
-            }
         } else {
             String directiveName = defineDirectiveAsString.substring(0,
                     defineDirectiveAsString.indexOf("("));
@@ -335,69 +329,46 @@ public class StandardTranslator implements Translator {
         }
     }
 
-    private void translateProcessDefinition(ASTNode processDefinition) {
-        String processName = processDefinition.getValueAsString("processName");
-        ASTNode instructionList = (ASTNode) processDefinition.jjtGetChild(0);
-        for (int i = 0; i < instructionList.jjtGetNumChildren(); ++i) {
-            ASTNode instruction = (ASTNode) instructionList.jjtGetChild(i);
-            instruction = instruction.getFirstChild();
-            //NonBlockInstruction
-            if (instruction.getNodeName().equals("NonBlockInstruction")) {
-                ASTNode nonBlockInstruction = instruction.getFirstChild();
-                //SimpleDeclaration
-                if (nonBlockInstruction.getNodeName().equals(
-                        "SimpleDeclaration")) {
-                    String variableName = nonBlockInstruction.getName();
-                    String variableType = nonBlockInstruction.getTypeName();
-                    Logger.getLogger(StandardTranslator.class.getName()).log(
-                            Level.INFO, "Process {0} has a variable of type {1}"
-                            + " named {2}.", new Object[]{processName,
-                        variableName, variableType});
-                }
-            } //BlockInstruction
-            else if (instruction.getNodeName().equals("BlockInstruction")) {
-            }
-        }
-    }
-
     private void handleAnnotatedComment(String comment) {
         assert comment.startsWith("@");
         comment = comment.substring("@".length());
         String directiveName = comment.replaceFirst("\\(.*\\)", "");
-        if (directiveName.equalsIgnoreCase("USES_TEMPLATE")) {
-            String parametersAsString = comment.substring(comment.indexOf("("),
-                    comment.lastIndexOf(")")).substring("(".length());
-            String[] parameters = parametersAsString.split(",");
+        String[] parameters = parseDirectiveParameters(comment);
+        if (directiveName.equalsIgnoreCase("UsesTemplate")) {
             for (String parameter : parameters) {
                 String[] parameterUnits = parameter.split("=");
                 String parameterName = parameterUnits[0];
                 String parameterValue = parameterUnits[1];
-                if (parameterName.equalsIgnoreCase("template_name")) {
+                if (parameterName.equalsIgnoreCase("name")) {
                     String templateName = parameterValue.replaceAll("\"", "");
+                    template = Template.getTemplate(templateName);
                     Logger.getLogger(StandardTranslator.class.getName()).log(
                             Level.INFO, "Using template {0}", templateName);
-                    template = Template.getTemplate(templateName);
+                    System.out.println("Using template " + templateName);
                 }
             }
-        } else if (directiveName.equalsIgnoreCase("BEGIN_TEMPLATE_BLOCK")) {
-            String parametersAsString = comment.substring(comment.indexOf("("),
-                    comment.lastIndexOf(")")).substring("(".length());
-            String[] parameters = parametersAsString.split(",");
+        } else if (directiveName.equalsIgnoreCase("BeginTemplateBlock")) {
             for (String parameter : parameters) {
                 String[] parameterUnits = parameter.split("=");
                 String parameterName = parameterUnits[0];
                 String parameterValue = parameterUnits[1];
-                if (parameterName.equalsIgnoreCase("block_name")) {
+                if (parameterName.equalsIgnoreCase("name")) {
                     String blockName = parameterValue.replaceAll("\"", "");
                     if (blockName.equalsIgnoreCase("generic_part")) {
-                        template.setCurrentBlock("generic_part");
                         canSkipUnits = true;
                     }
+                    template.setCurrentBlock(blockName);
                 }
             }
-        } else if (directiveName.equalsIgnoreCase("END_TEMPLATE_BLOCK")) {
+        } else if (directiveName.equalsIgnoreCase("EndTemplateBlock")) {
             template.setCurrentBlock("main");
             canSkipUnits = false;
+        } else if (directiveName.equalsIgnoreCase("TemplateParameter")) {
+            String parameter = parameters[0];
+            String[] parameterUnits = parameter.split("=");
+            assert parameterUnits[0].equalsIgnoreCase("name");
+            String parameterName = parameterUnits[1].replaceAll("\"", "");
+            templateParameters.push(parameterName);
         }
     }
 
@@ -676,7 +647,6 @@ public class StandardTranslator implements Translator {
 
     private void translateDoLoop(ASTNode doLoop, IndentedStringWriter writer) throws IOException {
         initialStep = currentStep;
-        lastStep = initialStep + 2;
         writer.write("//start of do loop\n");
         String code = MessageFormat.format("if (step == {0}) '{'\n",
                 currentStep);
@@ -806,12 +776,23 @@ public class StandardTranslator implements Translator {
 
     private void writeSaveLocationInstruction(IndentedStringWriter writer,
             int step) throws IOException {
-        writer.write("save_location(\"" + currentFunction + "\", " + step +
-                ");\n");
+        writer.write("save_location(\"" + currentFunction + "\", " + step
+                + ");\n");
     }
 
     private void writeSelfMessageInstruction(IndentedStringWriter writer)
             throws IOException {
         writer.write("scheduleAt(simTime(), empty_message);\n");
+    }
+
+    private String[] parseDirectiveParameters(String directive) {
+        int first = directive.indexOf("(");
+        int last = directive.indexOf(")");
+        if (first == -1 && last == -1) {
+            return new String[0];
+        }
+        String[] parameters = directive.substring(directive.indexOf("("),
+                directive.lastIndexOf(")")).substring("(".length()).split(",");
+        return parameters;
     }
 }
