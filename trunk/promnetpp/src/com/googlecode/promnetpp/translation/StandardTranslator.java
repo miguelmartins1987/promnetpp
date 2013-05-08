@@ -709,40 +709,11 @@ public class StandardTranslator implements Translator {
 
     private void translateForLoop(ASTNode forLoop,
             IndentedStringWriter writer) throws IOException {
-        ASTNode rangeVariable = forLoop.getChild(0);
-        ASTNode from = forLoop.getChild(1);
-        ASTNode to = forLoop.getChild(2);
-        ASTNode instructions = forLoop.getChild(3);
-        writer.write("//Start of for loop\n");
-        String code = MessageFormat.format("{0} = {1};\n",
-                new Object[]{rangeVariable.toCppVariableName(),
-            from.toCppExpression()});
-        writer.write(code);
-        writeStepIncrement(writer);
-        closeBlock(writer);
-        ++currentStep;
-        int loopStep = currentStep;
-        writeNewStepBlock(writer);
-        writer.indent();
-        code = MessageFormat.format("if ({0} <= {1}) '{'\n", new Object[]{
-            rangeVariable.toCppVariableName(), to.toCppExpression()});
-        writer.write(code);
-        writer.indent();
-        writeElseStepBlock();
-        for (int i = 0; i < instructions.jjtGetNumChildren(); ++i) {
-            translateInstruction(instructions, i, writer);
+        if (forLoop.containsFunction("receive")) {
+            translateTypeBForLoop(forLoop, writer);
+        } else {
+            translateTypeAForLoop(forLoop, writer);
         }
-        ++currentStep;
-        writeNewStepBlock(writer);
-        writer.indent();
-        writer.write("++" + rangeVariable.toCppVariableName() + ";\n");
-        writeSaveLocationInstruction(writer, loopStep);
-        writeSelfMessageInstruction(writer);
-        writer.write("//End of for loop\n");
-        closeBlock(writer);
-        ++currentStep;
-        writeNewStepBlock(writer);
-        writer.indent();
     }
 
     private void fullyCloseBlock(IndentedStringWriter writer) throws
@@ -794,5 +765,61 @@ public class StandardTranslator implements Translator {
         String[] parameters = directive.substring(directive.indexOf("("),
                 directive.lastIndexOf(")")).substring("(".length()).split(",");
         return parameters;
+    }
+
+    private void translateTypeBForLoop(ASTNode forLoop,
+            IndentedStringWriter writer) throws IOException {
+        ASTNode rangeVariable = forLoop.getChild(0);
+        ASTNode from = forLoop.getChild(1);
+        ASTNode to = forLoop.getChild(2);
+        ASTNode instructions = forLoop.getChild(3);
+        writer.write("//Start of for loop\n");
+        String code = MessageFormat.format("{0} = {1};\n",
+                new Object[]{rangeVariable.toCppVariableName(),
+            from.toCppExpression()});
+        writer.write(code);
+        writeStepIncrement(writer);
+        closeBlock(writer);
+        ++currentStep;
+        int loopStep = currentStep;
+        writeNewStepBlock(writer);
+        writer.indent();
+        code = MessageFormat.format("if ({0} <= {1}) '{'\n", new Object[]{
+            rangeVariable.toCppVariableName(), to.toCppExpression()});
+        writer.write(code);
+        writer.indent();
+        writeElseStepBlock();
+        for (int i = 0; i < instructions.jjtGetNumChildren(); ++i) {
+            translateInstruction(instructions, i, writer);
+        }
+        ++currentStep;
+        writeNewStepBlock(writer);
+        writer.indent();
+        writer.write("++" + rangeVariable.toCppVariableName() + ";\n");
+        writeSaveLocationInstruction(writer, loopStep);
+        writeSelfMessageInstruction(writer);
+        writer.write("//End of for loop\n");
+        closeBlock(writer);
+        ++currentStep;
+        writeNewStepBlock(writer);
+        writer.indent();
+    }
+
+    private void translateTypeAForLoop(ASTNode forLoop,
+            IndentedStringWriter writer) throws IOException {
+        ASTNode rangeVariable = forLoop.getChild(0);
+        ASTNode from = forLoop.getChild(1);
+        ASTNode to = forLoop.getChild(2);
+        ASTNode instructions = forLoop.getChild(3);
+        String code = MessageFormat.format("for ({0} = {1}; {0} <= {2}; ++{0})"
+                + " '{'\n", new Object[]{rangeVariable.toCppVariableName(),
+            from.toCppExpression(), to.toCppExpression()});
+        writer.write(code);
+        writer.indent();
+        for (int i = 0; i < instructions.jjtGetNumChildren(); ++i) {
+            translateInstruction(instructions, i, writer);
+        }
+        writer.dedent();
+        writer.write("}\n");
     }
 }
