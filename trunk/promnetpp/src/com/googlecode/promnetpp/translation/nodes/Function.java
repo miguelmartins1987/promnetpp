@@ -111,8 +111,8 @@ public class Function {
     }    
 
     public void analyze() {
-        System.out.println("Analyzing " + name + "...");
         analyzeInstructions();
+        /*
         System.out.println("Analysis on " + name + " complete.");
         if (requiresStepMap) {
             System.out.println(name + " requires a step map.");
@@ -120,6 +120,7 @@ public class Function {
             System.out.println(name + " does not require a step map.");
         }
         System.out.println("-------------------------------------------------");
+        */
     }
 
     private void analyzeInstructions() {

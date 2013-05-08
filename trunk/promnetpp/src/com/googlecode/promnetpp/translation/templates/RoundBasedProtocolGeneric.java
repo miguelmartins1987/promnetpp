@@ -9,6 +9,7 @@
  */
 package com.googlecode.promnetpp.translation.templates;
 
+import com.googlecode.promnetpp.parsing.ASTNode;
 import java.io.IOException;
 
 /**
@@ -16,6 +17,7 @@ import java.io.IOException;
  * @author Miguel Martins
  */
 public class RoundBasedProtocolGeneric extends Template {
+
     private int numberOfParticipants;
 
     public RoundBasedProtocolGeneric() {
@@ -33,10 +35,29 @@ public class RoundBasedProtocolGeneric extends Template {
 
     public void setNumberOfParticipants(int numberOfParticipants) {
         this.numberOfParticipants = numberOfParticipants;
+        System.out.println("Round-based protocol will have "
+                + numberOfParticipants + " participants.");
     }
-    
+
     public boolean inGenericPartBlock() {
         return currentBlock.equalsIgnoreCase("generic_part");
+    }
+
+    @Override
+    public void handleTemplateParameter(ASTNode directive,
+            String parameterName) {
+        String directiveAsString = directive.getValueAsString().trim();
+        System.out.println("The directive below shall be regarded as a template"
+                + " parameter.");
+        System.out.println(directiveAsString);
+        directiveAsString = directiveAsString.substring("#define".length())
+                .trim();
+        if (parameterName.equalsIgnoreCase("numberOfParticipants")) {
+            numberOfParticipants = Integer.parseInt(directiveAsString.split(" ")
+                    [1]);
+            System.out.println("Round-based protocol will have " +
+                    numberOfParticipants + " participants.");
+        }
     }
 
     @Override
