@@ -6,6 +6,4 @@ Although not strictly necessary to use PROMNeT++, the plug-in allows for direct 
 = Steps =
 
   # Open the OMNeT++ IDE.
-  # Select _Install New Software..._ under the _Help_ context menu.
-
-https://promnetpp.googlecode.com/svn/media/InstallNewSoftware.png
+  # TODO: I'm so pissed off right now... The IDE won't detect my plugin release...
