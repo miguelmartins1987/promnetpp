@@ -323,7 +323,8 @@ public class ASTNode extends SimpleNode {
         assert expression.getNodeName().equals("Expression");
         ASTNode firstTerm = expression.getFirstChild();
         String result = getTermAsString(firstTerm);
-        List<String> operators = (List<String>) expression.getValue("operators");
+        List<String> operators = (List<String>)
+                expression.getValue("operators");
         for (int i = 0; i < operators.size(); ++i) {
             String operator = operators.get(i);
             ASTNode term = (ASTNode) expression.jjtGetChild(i + 1);
@@ -362,9 +363,16 @@ public class ASTNode extends SimpleNode {
         } else if (factorType.equals("functionCall")) {
             ASTNode functionCall = factor.getFirstChild();
             String functionName = functionCall.getValueAsString("functionName");
+            if (functionName.equals("assert")) {
+                return functionCall.toCppAssert();
+            }
+            if (functionName.equals("printf")) {
+                return functionCall.toCppPrintf();
+            }
             if (functionName.equals("empty")) {
                 return "channel->is_empty()";
-            } else if (functionName.equals("nempty")) {
+            }
+            if (functionName.equals("nempty")) {
                 return "channel->is_not_empty()";
             }
             return functionName + "()";
@@ -458,5 +466,41 @@ public class ASTNode extends SimpleNode {
             }
         }
         return false;
+    }
+
+    public boolean isTypeAForLoop() {
+        if (!getNodeName().equals("ForLoop")) {
+            return false;
+        }
+        if (containsFunction("receive")) {
+            return false;
+        }
+        return true;
+    }
+
+    private String toCppAssert() {
+        String code = "ASSERT(";
+        ASTNode parameters = getFirstChild();
+        for (int i = 0; i < parameters.jjtGetNumChildren(); ++i) {
+            code += parameters.getChild(i).toCppExpression();
+            if (i != parameters.jjtGetNumChildren() - 1) {
+                code += ", ";
+            }
+        }
+        code += ")";
+        return code;
+    }
+
+    private String toCppPrintf() {
+        String code = "utilities::printf(this, ";
+        ASTNode parameters = getFirstChild();
+        for (int i = 0; i < parameters.jjtGetNumChildren(); ++i) {
+            code += parameters.getChild(i).toCppExpression();
+            if (i != parameters.jjtGetNumChildren() - 1) {
+                code += ", ";
+            }
+        }
+        code += ")";
+        return code;
     }
 }
