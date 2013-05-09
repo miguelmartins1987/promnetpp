@@ -558,10 +558,6 @@ public class StandardTranslator implements Translator {
             throws IOException {
         ASTNode instruction = instructionList.getChild(instructionIndex);
         String instructionType = instruction.getNodeName();
-        System.out.println(instructionType);
-        ASTNode nextInstruction = instructionList.tryAndGetChild(
-                instructionIndex + 1);
-
         boolean inStepBlock = false;
         if (!stepStack.empty()) {
             currentStep = stepStack.pop();
@@ -598,16 +594,6 @@ public class StandardTranslator implements Translator {
             ++currentStep;
             stepStack.push(currentStep);
         }
-        if (nextInstruction != null) {
-            String nextInstructionType = nextInstruction.getNodeName();
-            if (nextInstructionType.equals("ForLoop")) {
-                writeStepIncrement(writer);
-                closeBlock(writer);
-                ++currentStep;
-                writeNewStepBlock(writer);
-                writer.indent();
-            }
-        }
         //Save the last written instruction
         lastWrittenInstruction = instruction;
     }
@@ -622,19 +608,8 @@ public class StandardTranslator implements Translator {
         writer.write("}\n");
     }
 
-    private ASTNode searchForElseGuard(ASTNode ifNode) {
-        for (int i = 0; i < ifNode.jjtGetNumChildren(); ++i) {
-            ASTNode guard = (ASTNode) ifNode.jjtGetChild(i);
-            ASTNode guardCondition = guard.getFirstChild();
-            String guardConditionType = guardCondition.getNodeName();
-            if (guardConditionType.equals("Else")) {
-                return guard;
-            }
-        }
-        return null;
-    }
-
-    private void translateAssignment(ASTNode assignment, IndentedStringWriter writer) throws IOException {
+    private void translateAssignment(ASTNode assignment,
+            IndentedStringWriter writer) throws IOException {
         ASTNode variable = assignment.getFirstChild();
         ASTNode expression = assignment.getSecondChild();
         String translatedAssignment = "{0} = {1};\n";
@@ -645,7 +620,8 @@ public class StandardTranslator implements Translator {
         writer.write(translatedAssignment);
     }
 
-    private void translateDoLoop(ASTNode doLoop, IndentedStringWriter writer) throws IOException {
+    private void translateDoLoop(ASTNode doLoop, IndentedStringWriter writer)
+            throws IOException {
         initialStep = currentStep;
         writer.write("//start of do loop\n");
         String code = MessageFormat.format("if (step == {0}) '{'\n",
@@ -663,7 +639,7 @@ public class StandardTranslator implements Translator {
 
     private void translateIf(ASTNode _if, IndentedStringWriter writer)
             throws IOException {
-        ASTNode elseGuard = searchForElseGuard(_if);
+        boolean stepBlockWritten = false;
         for (int i = 0; i < _if.jjtGetNumChildren(); ++i) {
             ASTNode guard = _if.getChild(i);
             //Might not be a condition at all; we must determine if the
@@ -691,17 +667,21 @@ public class StandardTranslator implements Translator {
                             String functionName = lastWrittenInstruction
                                     .getCalledFunctionName();
                             if (functionName.equals("receive")) {
-                                ++currentStep;
                                 writeSaveLocationInstruction(writer,
-                                        currentStep + 2);
+                                        currentStep + 1);
+                                ++currentStep;
                                 fullyCloseBlock(writer);
                                 writeNewStepBlock(writer);
+                                stepBlockWritten = true;
                                 writer.indent();
                             }
                         }
                     }
                 }
             }
+        }
+        if (stepBlockWritten) {
+            writeStepIncrement(writer);
         }
         writer.dedent();
         writer.write("}\n");
@@ -767,6 +747,24 @@ public class StandardTranslator implements Translator {
         return parameters;
     }
 
+    private void translateTypeAForLoop(ASTNode forLoop,
+            IndentedStringWriter writer) throws IOException {
+        ASTNode rangeVariable = forLoop.getChild(0);
+        ASTNode from = forLoop.getChild(1);
+        ASTNode to = forLoop.getChild(2);
+        ASTNode instructions = forLoop.getChild(3);
+        String code = MessageFormat.format("for ({0} = {1}; {0} <= {2}; ++{0})"
+                + " '{'\n", new Object[]{rangeVariable.toCppVariableName(),
+            from.toCppExpression(), to.toCppExpression()});
+        writer.write(code);
+        writer.indent();
+        for (int i = 0; i < instructions.jjtGetNumChildren(); ++i) {
+            translateInstruction(instructions, i, writer);
+        }
+        writer.dedent();
+        writer.write("}\n");
+    }
+    
     private void translateTypeBForLoop(ASTNode forLoop,
             IndentedStringWriter writer) throws IOException {
         ASTNode rangeVariable = forLoop.getChild(0);
@@ -803,23 +801,5 @@ public class StandardTranslator implements Translator {
         ++currentStep;
         writeNewStepBlock(writer);
         writer.indent();
-    }
-
-    private void translateTypeAForLoop(ASTNode forLoop,
-            IndentedStringWriter writer) throws IOException {
-        ASTNode rangeVariable = forLoop.getChild(0);
-        ASTNode from = forLoop.getChild(1);
-        ASTNode to = forLoop.getChild(2);
-        ASTNode instructions = forLoop.getChild(3);
-        String code = MessageFormat.format("for ({0} = {1}; {0} <= {2}; ++{0})"
-                + " '{'\n", new Object[]{rangeVariable.toCppVariableName(),
-            from.toCppExpression(), to.toCppExpression()});
-        writer.write(code);
-        writer.indent();
-        for (int i = 0; i < instructions.jjtGetNumChildren(); ++i) {
-            translateInstruction(instructions, i, writer);
-        }
-        writer.dedent();
-        writer.write("}\n");
     }
 }
