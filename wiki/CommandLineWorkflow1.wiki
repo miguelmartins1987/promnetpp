@@ -24,8 +24,8 @@ Like many Java applications, PROMNeT++ is distributed, in binary form, as a JAR 
   # Type in (or copy and paste) the following commands:
 {{{
 set PROMNETPP_HOME=C:\promnetpp
-copy %PROMNETPP_HOME%\default-configuration.xml .
-java -enableassertions -jar %PROMNETPP_HOME%\promnetpp.jar NewOneThirdRule.pml
+copy "%PROMNETPP_HOME%\default-configuration.xml" .
+java -enableassertions -jar "%PROMNETPP_HOME%\promnetpp.jar" NewOneThirdRule.pml
 }}}
   # Make sure the translation process was successful, meaning that:
     * No errors were reported.
