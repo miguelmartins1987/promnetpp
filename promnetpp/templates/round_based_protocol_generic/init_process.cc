@@ -6,7 +6,7 @@ extern process_state state[];
 extern byte number_of_processes_in_current_round;
 
 void InitProcess::initialize() {
-    IProcess::initialize();
+    ProcessInterface::initialize();
     _pid = 0;
     round_number = 0;
     memset(state, 0, sizeof(process_state) * NUMBER_OF_PROCESSES);
@@ -43,7 +43,7 @@ void InitProcess::handleMessage(cMessage* msg) {
 }
 
 void InitProcess::finish() {
-    IProcess::finish();
+    ProcessInterface::finish();
 }
 
 void InitProcess::do_new_round() {
@@ -64,9 +64,9 @@ void InitProcess::system_every_round() {
         for (j = 0; j <= (NUMBER_OF_PROCESSES - 1); ++j) {
             int decision = intrand(2);
             if (decision == 0) {
-                state[i].heard_of[j] = false;
+                state[i].received_message[j] = false;
             } else {
-                state[i].heard_of[j] = true;
+                state[i].received_message[j] = true;
             }
         }
     }
