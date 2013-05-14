@@ -32,8 +32,11 @@ java -enableassertions -jar %PROMNETPP_HOME%\promnetpp.jar NewOneThirdRule.pml
     * Multiple header (_.h_) and source (_.cc_) files have been generated.
     * In case of failure, consult PROMNeT++'s log file (_promnetpp-log.xml_) to trace the source of the problem. If at all possible, correct the problem and try again.
 
-== Phase 2 - Compiling and running ==
+== Phase 2 - Creating the project ==
 
   # Launch the OMNeT++ IDE, via the standard _omnetpp_ command.
   # Select File|New|OMNeT++ Project...
   # Under the _Project name_ field, type the name of your project, as per the name of the folder you created in step 2 of the previous phase (in this guide's case, _OneThirdRule_)<br><br>https://promnetpp.googlecode.com/svn/media/NewOmnetppProjectOneThirdRule.png
+  # Proceed to the next page of the New OMNeT++ Project wizard, and choose _Empty project_ as your template.
+  # Finish the project's creation by clicking on the _Finish_ button.
+    * Alternatively, should you have any need to alter the toolchains and/or configurations for your project proceed to the next pages of the wizard and make any changes you desire. I suspect most users do not need to do this, however.
