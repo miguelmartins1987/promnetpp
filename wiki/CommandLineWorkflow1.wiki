@@ -15,6 +15,7 @@ Like many Java applications, PROMNeT++ is distributed, in binary form, as a JAR 
   * PROMNeT++ (its JAR file and any other files that come with its standard distribution) must have been extracted to a directory of your choice; this guide will assume _C:\promnetpp_ as said directory. The screenshot below illustrates the contents of PROMNeT++'s standard distribution.<br><br>https://promnetpp.googlecode.com/svn/media/Distribution1.png
 
 = Steps =
+== Phase 1 - Performing the translation ==
 
   # Navigate to your OMNeT++ workspace directory. By default, assuming OMNeT++ is installed under _C:\omnetpp-4.3_, said workspace directory is located under under _C:\omnetpp-4.3\samples_
   # Create a new folder for your (soon to be) OMNeT++ project, in this case, _OneThirdRule_ <br><br>https://promnetpp.googlecode.com/svn/media/ScreenshotGoesHere.png
@@ -30,3 +31,9 @@ java -enableassertions -jar %PROMNETPP_HOME%\promnetpp.jar NewOneThirdRule.pml
     * No errors were reported.
     * Multiple header (_.h_) and source (_.cc_) files have been generated.
     * In case of failure, consult PROMNeT++'s log file (_promnetpp-log.xml_) to trace the source of the problem. If at all possible, correct the problem and try again.
+
+== Phase 2 - Compiling and running ==
+
+  # Launch the OMNeT++ IDE, via the standard _omnetpp_ command.
+  # Select File|New|OMNeT++ Project...
+  # Under the _Project name_ field, type the name of your project, as per the name of the folder you created in step 2 of the previous phase (in this guide's case, _OneThirdRule_)<br><br>https://promnetpp.googlecode.com/svn/media/NewOmnetppProjectOneThirdRule.png
