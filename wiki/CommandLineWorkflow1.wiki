@@ -17,3 +17,4 @@ Like many Java applications, PROMNeT++ is distributed, in binary form, as a JAR 
 = Steps =
 
   # Navigate to your OMNeT++ workspace directory. By default, assuming OMNeT++ is installed under _C:\omnetpp-4.3_, said workspace directory is located under under _C:\omnetpp-4.3\samples_
+  # Create a new folder for your (soon to be) OMNeT++ project, in this case, _OneThirdRule_
