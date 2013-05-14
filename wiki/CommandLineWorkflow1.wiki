@@ -1,0 +1,19 @@
+#summary Basic usage of PROMNeT++ via the command line
+#labels Phase-Deploy,Featured
+
+= Introduction =
+
+Like many Java applications, PROMNeT++ is distributed, in binary form, as a JAR file. This Wiki page shall serve as a guide to perform a PROMELA to C++ translation via the command line, under a Windows environment. For most modern operating systems (such as recent Linux distributions or OS X), the procedure detailed below should (hopefully) be almost the same, with minor variants.
+
+= Prerequisites for this Workflow =
+
+  * OMNeT++ must be installed.
+    * For this guide, OMNeT++ is installed under _C:\omnetpp-4.3_
+
+  * OMNeT++ must be fully functional, meaning it must be possible to launch its IDE via the standard _omnetpp_ command. Furthermore, it must be possible to run simulations, preferrably using OMNeT++'s graphical simulation environment (Tkenv).
+    * We will resort to both OMNeT++'s IDE and graphical simulation environment later on.
+    * Most samples that come with OMNeT++'s distribution should suffice when determining whether or not is possible to perform a graphical simulation.
+
+= Steps =
+
+  # Navigate to your OMNeT++ workspace directory. By default, assuming OMNeT++ is installed under _C:\omnetpp-4.3_, said workspace directory is located under under _C:\omnetpp-4.3\samples_
