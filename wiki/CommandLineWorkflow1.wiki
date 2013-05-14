@@ -37,6 +37,6 @@ java -enableassertions -jar %PROMNETPP_HOME%\promnetpp.jar NewOneThirdRule.pml
   # Launch the OMNeT++ IDE, via the standard _omnetpp_ command.
   # Select File|New|OMNeT++ Project...
   # Under the _Project name_ field, type the name of your project, as per the name of the folder you created in step 2 of the previous phase (in this guide's case, _OneThirdRule_)<br><br>https://promnetpp.googlecode.com/svn/media/NewOmnetppProjectOneThirdRule.png
-  # Proceed to the next page of the New OMNeT++ Project wizard, and choose _Empty project_ as your template.
+  # Proceed to the next page of the New OMNeT++ Project wizard, and choose _Empty project_ as your template.<br><br>https://promnetpp.googlecode.com/svn/media/CreateEmptyProject.png
   # Finish the project's creation by clicking on the _Finish_ button.
     * Alternatively, should you have any need to alter the toolchains and/or configurations for your project proceed to the next pages of the wizard and make any changes you desire. I suspect most users do not need to do this, however.
