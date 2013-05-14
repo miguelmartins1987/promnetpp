@@ -9,13 +9,24 @@ Like many Java applications, PROMNeT++ is distributed, in binary form, as a JAR 
 
   * OMNeT++ must be installed.
     * For this guide, OMNeT++ is installed under _C:\omnetpp-4.3_
-
   * OMNeT++ must be fully functional, meaning it must be possible to launch its IDE via the standard _omnetpp_ command. Furthermore, it must be possible to run simulations, preferrably using OMNeT++'s graphical simulation environment (Tkenv).
     * We will resort to both OMNeT++'s IDE and graphical simulation environment later on.
     * Most samples that come with OMNeT++'s distribution should suffice when determining whether or not is possible to perform a graphical simulation.
+  * PROMNeT++ (its JAR file and any other files that come with its standard distribution) must have been extracted to a directory of your choice; this guide will assume _C:\promnetpp_ as said directory. The screenshot below illustrates the contents of PROMNeT++'s standard distribution.<br><br>https://promnetpp.googlecode.com/svn/media/Distribution1.png
 
 = Steps =
 
   # Navigate to your OMNeT++ workspace directory. By default, assuming OMNeT++ is installed under _C:\omnetpp-4.3_, said workspace directory is located under under _C:\omnetpp-4.3\samples_
   # Create a new folder for your (soon to be) OMNeT++ project, in this case, _OneThirdRule_ <br><br>https://promnetpp.googlecode.com/svn/media/ScreenshotGoesHere.png
-  # Navigate to the folder you just created and copy the PROMELA model (typically, a file with a _.pml_ extension) that is to be submitted for translation to it.<br><br>https://promnetpp.googlecode.com/svn/media/CopyPMLFile.png
+  # Navigate to the folder you just created and copy the PROMELA model (typically, a file with a _.pml_ extension) that is to be submitted for translation to it. For this guide, said model is _NewOneThirdRule.pml_<br><br>https://promnetpp.googlecode.com/svn/media/CopyPMLFile.png
+  # Open a command prompt/shell/terminal at your current location. In Windows Vista and above, this can be easily done by holding down either of the _Shift_ keys and choosing the _Open command window here_ option.
+  # Type in (or copy and paste) the following commands:
+{{{
+set PROMNETPP_HOME=C:\promnetpp
+copy %PROMNETPP_HOME%\default-configuration.xml .
+java -enableassertions -jar %PROMNETPP_HOME%\promnetpp.jar NewOneThirdRule.pml
+}}}
+  # Make sure the translation process was successful, meaning that:
+    * No errors were reported.
+    * Multiple header (_.h_) and source (_.cc_) files have been generated.
+    * In case of failure, consult PROMNeT++'s log file (_promnetpp-log.xml_) to trace the source of the problem. If at all possible, correct the problem and try again.
