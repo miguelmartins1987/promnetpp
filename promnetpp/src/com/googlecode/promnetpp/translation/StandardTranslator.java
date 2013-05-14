@@ -146,7 +146,7 @@ public class StandardTranslator implements Translator {
         }
         //Utility files
         FileUtils.copyFile(new File(System.getProperty("promnetpp.home")
-                + "/templates/private/utilities.cc"),
+                + "/templates/private/utilities.h"),
                 new File(Options.outputDirectory + "/utilities.h"));
         FileUtils.copyFile(new File(System.getProperty("promnetpp.home")
                 + "/templates/private/utilities.cc"),
