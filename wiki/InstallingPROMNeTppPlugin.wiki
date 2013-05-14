@@ -5,5 +5,4 @@ Although not strictly necessary to use PROMNeT++, the plug-in allows for direct 
 
 = Steps =
 
-  # Open the OMNeT++ IDE.
-  # TODO: I'm so pissed off right now... The IDE won't detect my plugin release...
+TODO - can't get the exported plugin to work, even though it works fine under the building environment.
