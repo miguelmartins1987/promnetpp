@@ -1,8 +1,8 @@
-#include "channel.h"
-#include "channel_m.h"
 #include "_process.h"
 #include "types.h"
 #include "utilities.h"
+
+#include "message_m.h"
 #include <omnetpp.h>
 
 extern process_state state[];
@@ -13,11 +13,67 @@ void Process::initialize() '{'
 '}'
 
 void Process::handleMessage(cMessage* msg) '{'
-    {0}
+    if (msg->isSelfMessage()) '{'
+        /*
+         * Messages whose class is "Message" are messages that a process sent to
+         * itself. If we encounter these, we must queue them, as if any other
+         * process sent them.
+         */
+        if (strcmp(msg->getClassName(), "Message") == 0) '{'
+            enqueue_message(msg);
+        '}'
+        else if (strcmp(current_location, "main") == 0) '{'
+            int step = step_map["main"];
+            if (step == 0) '{'
+                begin_round();
+            '}'
+            if (step == 1) '{'
+                compute_message();
+                send_message_to_all_processes();
+            '}'
+            if (step == 2) '{'
+                state_transition();
+                end_round();
+            '}'
+        '}'
+    '}' else '{'
+        const char* sender_name = msg->getSenderModule()->getName();
+        //Messages from init process
+        if (strcmp(sender_name, "init") == 0) '{'
+            //"init" message
+            if (strcmp(msg->getName(), "init") == 0) '{'
+                utilities::printf(this, "The process with PID %d has initial value"
+                        " %d\n", _pid, my_state.local_value);
+            '}'
+            //"new_round" message
+            else if (strcmp(msg->getName(), "new_round") == 0) '{'
+                step_map["main"] = 0;
+                scheduleAt(simTime(), empty_message);
+            '}'
+            //"begin" message
+            else if (strcmp(msg->getName(), "begin") == 0) '{'
+                step_map["main"] = 1;
+                scheduleAt(simTime(), empty_message);
+            '}'
+            delete msg;
+        '}'
+        //Messages from another process
+        else if (strcmp(sender_name, "process") == 0) '{'
+            enqueue_message(msg);
+        '}'
+    '}'
 '}'
 
 void Process::finish() '{'
     ProcessInterface::finish();
+'}'
+
+void Process::enqueue_message(cMessage* msg) '{'
+    received_messages.insert(msg);
+    if (received_messages.length() == NUMBER_OF_PROCESSES) '{'
+        ++step_map["main"];
+        scheduleAt(simTime(), empty_message);
+    '}'
 '}'
 
 //Generic functions
@@ -26,41 +82,38 @@ void Process::begin_round() '{'
 '}'
 
 void Process::end_round() '{'
+    //Clear the queue before we move on to the next round
+    while (!received_messages.empty()) '{'
+        Message* message = check_and_cast<Message*>(received_messages.pop());
+        delete message;
+    '}'
     send(finished_message->dup(), "init_gate$o");
 '}'
 
 void Process::send_message_to_all_processes() '{'
-    ChannelMessage* message = new ChannelMessage();
-    message->setOperationType(REQUEST_PUT);
+    Message* message = new Message();
     message->set_message(_message);
-    for (int i = 0; i < NUMBER_OF_PROCESSES; ++i) '{'
-        send(message->dup(), "channel_gate$o", i);
+    for (i = 1; i <= NUMBER_OF_PROCESSES; ++i) '{'
+        if (i == _pid) '{'
+            scheduleAt(simTime(), message->dup());
+        '}' else '{'
+            send(message->dup(), "process_gate$o", i);
+        '}'
     '}'
     delete message;
 '}'
 
-void Process::wait_to_receive() '{'
-    Channel* channel = check_and_cast<Channel*>(
-            this->getParentModule()->getSubmodule("_channel", _pid - 1));
-    if (channel->is_full()) '{'
-        ++step_map["main"];
-        scheduleAt(simTime(), empty_message);
-    '}' else '{'
-        scheduleAt(simTime() + NUMBER_OF_PROCESSES, empty_message);
-    '}'
-'}'
-
 void Process::receive() '{'
-    ChannelMessage* message = new ChannelMessage();
-    message->setOperationType(REQUEST_TAKE);
-    send(message, "channel_gate$o", _pid - 1);
+    Message* message = check_and_cast<Message*>(received_messages.pop());
+    _message = message->get_message();
+    delete message;
 '}'
 
 //Specific functions
 void Process::compute_message() '{'
-{1}
+{0}
 '}'
 
 void Process::state_transition() '{'
-{2}
+{1}
 '}'
