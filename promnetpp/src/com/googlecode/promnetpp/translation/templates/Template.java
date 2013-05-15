@@ -14,7 +14,6 @@ import com.googlecode.promnetpp.parsing.ASTNode;
 import com.googlecode.promnetpp.utilities.IndentedStringWriter;
 import java.io.File;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -110,6 +109,10 @@ public abstract class Template {
 
     public void handleTemplateParameter(ASTNode directive,
             String parameterName) {
+        throw new UnsupportedOperationException("Must be overridden!");
+    }
+    
+    public String getGlobalDeclarations() {
         throw new UnsupportedOperationException("Must be overridden!");
     }
 }

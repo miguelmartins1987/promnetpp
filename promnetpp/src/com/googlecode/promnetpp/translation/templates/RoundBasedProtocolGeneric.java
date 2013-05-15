@@ -44,6 +44,11 @@ public class RoundBasedProtocolGeneric extends Template {
     }
 
     @Override
+    public String getGlobalDeclarations() {
+        return "byte number_of_processes_in_current_round = 0;";
+    }
+
+    @Override
     public void handleTemplateParameter(ASTNode directive,
             String parameterName) {
         String directiveAsString = directive.getValueAsString().trim();
@@ -62,13 +67,12 @@ public class RoundBasedProtocolGeneric extends Template {
 
     @Override
     public void writeDynamicFiles() throws IOException {
-        String handleMessageCode = "//TODO";
         String computeMessageCode = getSpecificFunctionWriter(
                 "compute_message").toString();
         String stateTransitionCode = getSpecificFunctionWriter(
                 "state_transition").toString();
-        setDynamicFileParameters("_process.cc", handleMessageCode,
-                computeMessageCode, stateTransitionCode);
+        setDynamicFileParameters("_process.cc", computeMessageCode,
+                stateTransitionCode);
         super.writeDynamicFiles();
     }
 }

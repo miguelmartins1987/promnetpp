@@ -117,6 +117,10 @@ public class StandardTranslator implements Translator {
                     + "/templates/private/globals.cc"));
             currentFileContents = MessageFormat.format(currentFileContents,
                     globalDeclarations.toString());
+            if (template != null) {
+                currentFileContents += template.getGlobalDeclarations();
+                currentFileContents += "\n";
+            }
             FileUtils.writeStringToFile(new File(Options.outputDirectory
                     + "/globals.cc"), currentFileContents);
             //Copy files
@@ -477,12 +481,6 @@ public class StandardTranslator implements Translator {
             IndentedStringWriter writer = template.getSpecificFunctionWriter(
                     function.getName());
             writer.indent();
-            if (function.requiresStepMap()) {
-                writer.write(MessageFormat.format("int step ="
-                        + " step_map[\"{0}\"];\n", function.getName()));
-                stepStack.push(0);
-            }
-
             System.out.println("Translating " + currentFunction);
             for (int i = 0; i < instructions.jjtGetNumChildren(); ++i) {
                 translateInstruction(instructions, i, writer);
@@ -662,20 +660,6 @@ public class StandardTranslator implements Translator {
                         translateInstruction(guard, j, writer);
                         --numberOfInstructionsToWrite;
                         ++j;
-                        //TODO: Refactor this
-                        if (lastWrittenInstruction.isFunctionCall()) {
-                            String functionName = lastWrittenInstruction
-                                    .getCalledFunctionName();
-                            if (functionName.equals("receive")) {
-                                writeSaveLocationInstruction(writer,
-                                        currentStep + 1);
-                                ++currentStep;
-                                fullyCloseBlock(writer);
-                                writeNewStepBlock(writer);
-                                stepBlockWritten = true;
-                                writer.indent();
-                            }
-                        }
                     }
                 }
             }
@@ -689,11 +673,7 @@ public class StandardTranslator implements Translator {
 
     private void translateForLoop(ASTNode forLoop,
             IndentedStringWriter writer) throws IOException {
-        if (forLoop.containsFunction("receive")) {
-            translateTypeBForLoop(forLoop, writer);
-        } else {
-            translateTypeAForLoop(forLoop, writer);
-        }
+        translateTypeAForLoop(forLoop, writer);
     }
 
     private void fullyCloseBlock(IndentedStringWriter writer) throws
