@@ -9,8 +9,12 @@
  */
 package com.googlecode.promnetpp.translation.templates;
 
+import com.googlecode.promnetpp.options.Options;
 import com.googlecode.promnetpp.parsing.ASTNode;
+import java.io.File;
 import java.io.IOException;
+import java.text.MessageFormat;
+import org.apache.commons.io.FileUtils;
 
 /**
  *
@@ -74,5 +78,29 @@ public class RoundBasedProtocolGeneric extends Template {
         setDynamicFileParameters("_process.cc", computeMessageCode,
                 stateTransitionCode);
         super.writeDynamicFiles();
+    }
+
+    @Override
+    public void writeMessageDefinitionFiles() throws IOException {
+        String messageTemplatePath = System.getProperty("promnetpp.home")
+                + "/templates/" + name + "/message.msg";
+        String messageFileContents = FileUtils.readFileToString(new File(
+                messageTemplatePath));
+        messageFileContents = MessageFormat.format(messageFileContents,
+                "message_t");
+        FileUtils.writeStringToFile(new File(Options.outputDirectory + "/"
+                    + "message.msg"), messageFileContents);
+    }
+
+    @Override
+    public void writeNEDFile() throws IOException {
+        String NEDTemplatePath = System.getProperty("promnetpp.home")
+                + "/templates/" + name + "/network.ned";
+        String NEDFileContents = FileUtils.readFileToString(new File(
+                NEDTemplatePath));
+        NEDFileContents = MessageFormat.format(NEDFileContents,
+                numberOfParticipants);
+        FileUtils.writeStringToFile(new File(Options.outputDirectory + "/"
+                    + "network.ned"), NEDFileContents);
     }
 }
