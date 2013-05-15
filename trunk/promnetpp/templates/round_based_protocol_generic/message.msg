@@ -1,6 +1,6 @@
-cplusplus '{''{'
+cplusplus '{{'
 #include "types.h"
-'}''}'
+'}}'
 
 struct {0};
 
