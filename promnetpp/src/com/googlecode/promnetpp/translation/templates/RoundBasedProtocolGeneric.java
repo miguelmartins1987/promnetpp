@@ -29,7 +29,7 @@ public class RoundBasedProtocolGeneric extends Template {
         name = "round_based_protocol_generic";
         addStaticFile("init_process.h");
         addStaticFile("init_process.cc");
-        addStaticFile("_process.h");
+        addDynamicFile("_process.h");
         addDynamicFile("_process.cc");
     }
 
@@ -75,6 +75,8 @@ public class RoundBasedProtocolGeneric extends Template {
                 "compute_message").toString();
         String stateTransitionCode = getSpecificFunctionWriter(
                 "state_transition").toString();
+        setDynamicFileParameters("_process.h", "message_t _message;\n" +
+                "    byte i, j, k, l;");
         setDynamicFileParameters("_process.cc", computeMessageCode,
                 stateTransitionCode);
         super.writeDynamicFiles();
