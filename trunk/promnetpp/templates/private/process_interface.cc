@@ -6,7 +6,6 @@ void ProcessInterface::initialize() {
     finished_message = new cMessage("finished");
     ready_message = new cMessage("ready");
     step_map["main"] = 0;
-    step_map["state_transition"] = 0;
     //Every process starts at "main"
     current_location = "main";
 }

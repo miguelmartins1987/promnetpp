@@ -115,4 +115,13 @@ public abstract class Template {
     public String getGlobalDeclarations() {
         throw new UnsupportedOperationException("Must be overridden!");
     }
+    
+    
+    public void writeMessageDefinitionFiles() throws IOException {
+        throw new UnsupportedOperationException("Must be overridden!");
+    }
+    
+    public void writeNEDFile() throws IOException {
+        throw new UnsupportedOperationException("Must be overridden!");
+    }
 }
