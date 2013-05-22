@@ -3,6 +3,6 @@
 
 Although not strictly necessary to use PROMNeT++, the plug-in allows for direct translation inside the OMNeT++ IDE. This guide currently illustrates its installation procedure under a Windows environment; however, installation under any other environment should be very similar, if not practically equal.
 
-= Steps =
+= Method 1 - Installing the plugin via manual download =
 
-TODO - can't get the exported plugin to work, even though it works fine under the building environment.
+  # Head over to the <a href="https://code.google.com/p/promnetpp/downloads/list">_Downloads_</a> page and download the latest _promnetpp-plugin-x.y.z.zip_ file, where _x.y.z_ corresponds to the latest version number. _Do not extract the zip file's contents, as it is unecessary._
