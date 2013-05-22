@@ -45,4 +45,8 @@ java -enableassertions -jar "%PROMNETPP_HOME%\promnetpp.jar" NewOneThirdRule.pml
 
   # At this point, you will most likely notice that your newly-created project contains an error. This is to be expected, as the OMNeT++ IDE, by default, creates a _package.ned_ file which contains a package declaration. PROMNeT++ makes no use of packages; as such, all you have to do is delete the _package.ned_ file. You may do this by either highlighting the file and pressing _Delete_ on your keyboard, or by right-clicking on the file and choosing _Delete_, as shown below.<br><br>https://promnetpp.googlecode.com/svn/media/DeletePackageNED.png
   # Compile your project by right-clicking on it and choosing _Build Project_.<br><br>https://promnetpp.googlecode.com/svn/media/BuildProject.png
-  # Finally, run a graphical simulation by right-clicking on your project and selecting Run As|OMNeT++ Simulation
+  # Finally, run a graphical simulation by right-clicking on your project and selecting Run As|OMNeT++ Simulation<br><br>The simulation environment shall resemble the screenshot below:<br>https://promnetpp.googlecode.com/svn/media/OneThirdRuleSimulationEnvironment.png
+
+== Final remarks ==
+
+  # If your simulation environment does not resemble the screenshot above, and all nodes have a question mark (?) as an icon, then you most likely need to download and extract the PROMNeT++ icon pack. Head over to the <a href="https://code.google.com/p/promnetpp/downloads/list">_Downloads_</a> page.
