@@ -44,3 +44,4 @@ java -enableassertions -jar "%PROMNETPP_HOME%\promnetpp.jar" NewOneThirdRule.pml
 == Phase 2 - Compiling and running ==
 
   # At this point, you will most likely notice that your newly-created project contains an error. This is to be expected, as the OMNeT++ IDE, by default, creates a _package.ned_ file which contains a package declaration. PROMNeT++ makes no use of packages; as such, all you have to do is delete the _package.ned_ file. You may do this by either highlighting the file and pressing _Delete_ on your keyboard, or by right-clicking on the file and choosing _Delete_, as shown below.<br><br>https://promnetpp.googlecode.com/svn/media/DeletePackageNED.png
+  # Compile your project by right-clicking on it and choosing _Build Project_.<br><br>https://promnetpp.googlecode.com/svn/media/BuildProject.png
