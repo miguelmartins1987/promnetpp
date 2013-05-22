@@ -40,3 +40,7 @@ java -enableassertions -jar "%PROMNETPP_HOME%\promnetpp.jar" NewOneThirdRule.pml
   # Proceed to the next page of the New OMNeT++ Project wizard, and choose _Empty project_ as your template.<br><br>https://promnetpp.googlecode.com/svn/media/CreateEmptyProject.png
   # Finish the project's creation by clicking on the _Finish_ button.
     * Alternatively, should you have any need to alter the toolchains and/or configurations for your project proceed to the next pages of the wizard and make any changes you desire. I suspect most users do not need to do this, however.
+
+== Phase 2 - Compiling and running ==
+
+  # At this point, you will most likely notice that your newly-created project contains an error. This is to be expected, as the OMNeT++ IDE, by default, creates a _package.ned_ file which contains a package declaration. PROMNeT++ makes no use of packages; as such, all you have to do is delete the _package.ned_ file. You may do this by either highlighting the file and pressing _Delete_ on your keyboard, or by right-clicking on the file and choosing _Delete_, as shown below.<br><br>https://promnetpp.googlecode.com/svn/media/DeletePackageNED.png
