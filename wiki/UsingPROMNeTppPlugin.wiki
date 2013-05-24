@@ -5,7 +5,7 @@
 
 = Introduction =
 
-This article is a guide that is meant to provide instructions on using the PROMNeT++ Plug-in for Eclipse.
+This article constitutes a guide that is meant to provide instructions on using the PROMNeT++ Plug-in for Eclipse.
 
 = Prerequisites =
 
@@ -13,4 +13,6 @@ This article is a guide that is meant to provide instructions on using the PROMN
 
 = Steps =
 
-TODO.
+  # If not open already, launch the OMNeT++ IDE, via the standard _omnetpp_ command.
+  # Select File|New|OMNeT++ Project...
+  # Give your project a name. We'll be performing a translation of the _OneThirdRule_ protocol during this guide.<br><br>https://promnetpp.googlecode.com/svn/media/NewOmnetppProjectOneThirdRule.png
