@@ -1,0 +1,16 @@
+#summary Using PROMNeT++ Plug-in
+
+= Contents =
+<wiki:toc max_depth="1" />
+
+= Introduction =
+
+This article is a guide that is meant to provide instructions on using the PROMNeT++ Plug-in for Eclipse.
+
+= Prerequisites =
+
+  * It is assumed that the plug-in has been correctly installed. If not, consult [InstallingPROMNeTppPlugin this article] for installation instructions.
+
+= Steps =
+
+TODO.
