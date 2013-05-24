@@ -1,3 +1,5 @@
+#summary How to install the PROMNeT++ plug-in by using its update site.
+
 = Introduction =
 
 At the moment, there is no update site for the PROMNeT++ plugin.
