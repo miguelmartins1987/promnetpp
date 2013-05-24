@@ -17,7 +17,7 @@ private:
     void send_message_to_all_processes();
     void state_transition();
     //Variables
-    {0}
+{0}
     //Extra functions
     void enqueue_message(cMessage* msg);
     //Extra variables

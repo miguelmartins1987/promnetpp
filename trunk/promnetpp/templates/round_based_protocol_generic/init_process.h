@@ -4,7 +4,7 @@
 #include "process_interface.h"
 #include "types.h"
 
-class InitProcess: public ProcessInterface {
+class InitProcess: public ProcessInterface '{'
 private:
     virtual void initialize();
     virtual void handleMessage(cMessage* msg);
@@ -17,8 +17,8 @@ private:
     void system_every_round();
     void system_init();
     //Variables
-    byte i, j;
-};
+{0}
+'}';
 
 Define_Module(InitProcess)
 

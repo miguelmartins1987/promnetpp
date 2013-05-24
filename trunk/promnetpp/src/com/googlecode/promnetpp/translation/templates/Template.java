@@ -35,6 +35,8 @@ public abstract class Template {
     protected String currentBlock;
     //Meant for specific functions
     protected Map<String, IndentedStringWriter> specificFunctionWriters;
+    //Local variable declarations for each type of process
+    protected Map<String, IndentedStringWriter> localVariableDeclarations;
     
 
     public Template() {
@@ -42,7 +44,9 @@ public abstract class Template {
         dynamicFileNames = new ArrayList<String>();
         dynamicFileContents = new HashMap<String, String>();
         currentBlock = "main";
+        
         specificFunctionWriters = new HashMap<String, IndentedStringWriter>();
+        localVariableDeclarations = new HashMap<String, IndentedStringWriter>();
     }
     
     public static Template getTemplate(String templateName) {
@@ -103,6 +107,16 @@ public abstract class Template {
         if (writer == null) {
             writer = new IndentedStringWriter();
             specificFunctionWriters.put(functionName, writer);
+        }
+        return writer;
+    }
+    
+    public IndentedStringWriter getLocalVariableDeclarationWriter(String
+            processName) {
+        IndentedStringWriter writer = localVariableDeclarations.get(processName);
+        if (writer == null) {
+            writer = new IndentedStringWriter();
+            localVariableDeclarations.put(processName, writer);
         }
         return writer;
     }

@@ -9,6 +9,8 @@
  */
 package com.googlecode.promnetpp.parsing;
 
+import java.util.AbstractList;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -352,6 +354,9 @@ public class ASTNode extends SimpleNode {
         if (factorType.equals("expressionParentheses")) {
             ASTNode expression = factor.getFirstChild();
             return "(" + getExpressionAsString(expression) + ")";
+        } else if (factorType.equals("negation")) {
+            ASTNode expression = factor.getFirstChild();
+            return "!" + getExpressionAsString(expression);
         } else if (factorType.equals("integerLiteral")) {
             return factorValue;
         } else if (factorType.equals("stringLiteral")) {
@@ -393,6 +398,7 @@ public class ASTNode extends SimpleNode {
                 || nodeName.equals("Increment")
                 || nodeName.equals("Decrement")
                 || nodeName.equals("Else")
+                || nodeName.equals("Skip")
                 || nodeName.endsWith("Loop");
     }
 
@@ -502,5 +508,43 @@ public class ASTNode extends SimpleNode {
         }
         code += ")";
         return code;
+    }
+
+    public void normalizeIf() {
+        //An if with 1 child is already normalized
+        if (jjtGetNumChildren() == 1) {
+            return;
+        }
+        List<ASTNode> executableGuards = new ArrayList<ASTNode>();
+        List<ASTNode> nonExecutableGuards = new ArrayList<ASTNode>();
+        for (int i = 0; i < jjtGetNumChildren(); ++i) {
+            ASTNode guard = getChild(i);
+            ASTNode guardCondition = guard.getFirstChild();
+            if (guardCondition.isAlwaysExecutable()) {
+                executableGuards.add(guard);
+            } else {
+                nonExecutableGuards.add(guard);
+            }
+        }
+        List<ASTNode> rearrangedGuards = new ArrayList<ASTNode>();
+        rearrangedGuards.addAll(nonExecutableGuards);
+        rearrangedGuards.addAll(executableGuards);
+        for (int i = 0; i < rearrangedGuards.size(); ++i) {
+            children[i] = rearrangedGuards.get(i);
+        }
+    }
+
+    public List<ASTNode> getLocalVariableDeclarations() {
+        List<ASTNode> declarations = new ArrayList<ASTNode>();
+        ASTNode instructionList = this.getFirstChild();
+        for (int i = 0; i < instructionList.jjtGetNumChildren(); ++i) {
+            ASTNode child = instructionList.getChild(i);
+            String childType = child.getNodeName();
+            if (childType.equals("SimpleDeclaration") ||
+                    childType.equals("MultiDeclaration")) {
+                declarations.add(child);
+            }
+        }
+        return declarations;
     }
 }
