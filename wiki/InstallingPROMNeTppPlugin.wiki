@@ -4,7 +4,7 @@
 Although not strictly necessary to use PROMNeT++, the plug-in allows for direct translation inside the OMNeT++ IDE. This guide currently illustrates its installation procedure under a Windows environment; however, installation under any other environment should be very similar, if not practically equal.
 
 = Installation methods =
-[InstallingPROMNeTppPlugin#Method_1_-_Installing_the_plugin_via_manual_download]
+[InstallingPROMNeTppPlugin#Method_1_-_Installing_the_plugin_via_manual_download Method 1]
 
 = Method 1 - Installing the plugin via manual download =
 
