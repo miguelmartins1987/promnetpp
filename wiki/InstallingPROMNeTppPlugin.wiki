@@ -4,7 +4,9 @@
 Although not strictly necessary to use PROMNeT++, the plug-in allows for direct translation inside the OMNeT++ IDE. This guide currently illustrates its installation procedure under a Windows environment; however, installation under any other environment should be very similar, if not practically equal.
 
 = Installation methods =
-[InstallingPROMNeTppPlugin#Method_1_-_Installing_the_plugin_via_manual_download Method 1]
+[InstallingPROMNeTppPlugin#Method_1_-_Installing_the_plugin_via_manual_download Method 1 (manual download)]
+
+[InstallingPROMNeTppPlugin#Method_2_-_Installing_the_plugin_via_update_site Method 2 (update site)]
 
 = Method 1 - Installing the plugin via manual download =
 
@@ -16,3 +18,6 @@ Although not strictly necessary to use PROMNeT++, the plug-in allows for direct 
   # If done correctly, an entry for the plugin should appear. Confirm that you want to install the plugin by marking the entry's checkbox and clicking on the _Next >_ button to proceed to the next page.<br><br>https://promnetpp.googlecode.com/svn/media/MarkTheCheckboxAndClickNext.png
   # You should be on the _Install Details_ page at this point, as illustrated below. For the vast majority (if not for all) of the users, there should be no need to actually check out the plugin's details. Proceed to the next page by, once again, clicking on the _Next >_ button.<br><br>https://promnetpp.googlecode.com/svn/media/InstallDetailsClickNext.png
   # Review the enclosed license presented on the _Review Licenses_ page, if needed. Naturally, like any other plugin for Eclipse (or, in this case, the OMNeT++ IDE, which is Eclipse-based), you must accept the terms of the license agreement in order to install and use this plugin. Confirm that you want to install the plugin by clicking on _I accept the terms of the license agreement_, and clicking on the _Finish_ button thereafter.<br><br>https://promnetpp.googlecode.com/svn/media/AcceptTermsAndClickFinish.png
+
+= Method 2 - Installing the plugin via update site =
+See [InstallingPROMNeTppPluginUpdateSite this article].
