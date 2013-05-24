@@ -1,4 +1,6 @@
+#summary How to install the PROMNeT++ plug-in for Eclipse
 #labels Featured,Phase-Deploy
+
 = Introduction =
 
 Although not strictly necessary to use PROMNeT++, the plug-in allows for direct translation inside the OMNeT++ IDE. This guide currently illustrates its installation procedure under a Windows environment; however, installation under any other environment should be very similar, if not practically equal.
