@@ -41,9 +41,7 @@ import org.apache.commons.io.FileUtils;
  */
 public class StandardTranslator implements Translator {
 
-    //Whether the translator can skip units (except for annotated comments)
-    //May change over time
-    private static boolean canSkipUnits = false;
+    private static int mode = StandardTranslatorModes.NORMAL_MODE;
     //The template to be used, if any
     private Template template;
     //Process collection (excluding init)
@@ -206,7 +204,7 @@ public class StandardTranslator implements Translator {
                             parameterName);
                 }
             } else {
-                if (!canSkipUnits) {
+                if (mode == StandardTranslatorModes.NORMAL_MODE) {
                     //Type definition (global)
                     if (currentChildType.equals("TypeDefinition")) {
                         translateTypeDefinition(currentChild);
@@ -219,6 +217,22 @@ public class StandardTranslator implements Translator {
                                 "functionName");
                         Function function = functions.get(functionName);
                         translateFunction(function);
+                    }
+                } else if (mode == StandardTranslatorModes.EXTRACT_VARIABLES) {
+                    if (currentChildType.equals("ProcessDefinition")
+                            || currentChildType.equals("InitProcessDefinition")) {
+                        String processName = "init";
+                        if (!currentChildType.startsWith("Init")) {
+                            processName = currentChild.getValueAsString("processName");
+                        }
+                        List<ASTNode> localVariableDeclarations =
+                                currentChild.getLocalVariableDeclarations();
+                        System.out.println("Found "
+                                + localVariableDeclarations.size() + " local"
+                                + " variable declarations for process "
+                                + processName + ".");
+                        writeLocalVariableDeclarations(processName,
+                                localVariableDeclarations);
                     }
                 }
             }
@@ -359,14 +373,14 @@ public class StandardTranslator implements Translator {
                 if (parameterName.equalsIgnoreCase("name")) {
                     String blockName = parameterValue.replaceAll("\"", "");
                     if (blockName.equalsIgnoreCase("generic_part")) {
-                        canSkipUnits = true;
+                        mode = StandardTranslatorModes.EXTRACT_VARIABLES;
                     }
                     template.setCurrentBlock(blockName);
                 }
             }
         } else if (directiveName.equalsIgnoreCase("EndTemplateBlock")) {
             template.setCurrentBlock("main");
-            canSkipUnits = false;
+            mode = StandardTranslatorModes.NORMAL_MODE;
         } else if (directiveName.equalsIgnoreCase("TemplateParameter")) {
             String parameter = parameters[0];
             String[] parameterUnits = parameter.split("=");
@@ -470,14 +484,6 @@ public class StandardTranslator implements Translator {
         assert instructions != null : "Function " + function.getName() + " has"
                 + " no instructions!";
         if (template != null) {
-            /*
-             * If we're using a template, there's no need to translate functions
-             * for the init process.
-             */
-            if (function.hasSingleCaller() && function.getFirstCaller()
-                    .equalsIgnoreCase("init")) {
-                return;
-            }
             IndentedStringWriter writer = template.getSpecificFunctionWriter(
                     function.getName());
             writer.indent();
@@ -585,6 +591,8 @@ public class StandardTranslator implements Translator {
         } else if (instructionType.equals("Decrement")) {
             ASTNode variable = instruction.getFirstChild();
             writer.write(variable.toCppVariableName() + "--;\n");
+        } else if (instructionType.equals("Skip")) {
+            writer.write("//Skip\n");
         }
         //Close the current step block, if any
         if (inStepBlock) {
@@ -634,38 +642,15 @@ public class StandardTranslator implements Translator {
 
     private void translateIf(ASTNode _if, IndentedStringWriter writer)
             throws IOException {
-        boolean stepBlockWritten = false;
-        for (int i = 0; i < _if.jjtGetNumChildren(); ++i) {
-            ASTNode guard = _if.getChild(i);
-            //Might not be a condition at all; we must determine if the
-            //statement is executable or not first
-            ASTNode guardCondition = guard.getFirstChild();
-            if (!guardCondition.isAlwaysExecutable()) {
-                String condition = null;
-                String conditionType = guardCondition.getNodeName();
-                if (conditionType.equals("Expression")) {
-                    condition = guardCondition.toCppExpression();
-                }
-                if (condition != null) {
-                    String code = MessageFormat.format("if ({0}) '{'\n",
-                            condition);
-                    writer.write(code);
-                    writer.indent();
-                    int numberOfInstructionsToWrite = guard.jjtGetNumChildren()
-                            - 1;
-                    for (int j = 1; numberOfInstructionsToWrite > 0;) {
-                        translateInstruction(guard, j, writer);
-                        --numberOfInstructionsToWrite;
-                        ++j;
-                    }
-                }
-            }
+        Map<String, Object> ifData = getIfData(_if);
+        if ((Boolean) ifData.get("everyGuardExecutable")) {
+            translateRandomDecisionIf(_if, writer);
+        } else if ((Boolean) ifData.get("containsElseGuard")) {
+            translateIfElseIf(_if, writer);
+        } else {
+            _if.normalizeIf();
+            translateIfElseIf(_if, writer);
         }
-        if (stepBlockWritten) {
-            writeStepIncrement(writer);
-        }
-        writer.dedent();
-        writer.write("}\n");
     }
 
     private void translateForLoop(ASTNode forLoop,
@@ -705,5 +690,123 @@ public class StandardTranslator implements Translator {
         }
         writer.dedent();
         writer.write("}\n");
+    }
+
+    private Map<String, Object> getIfData(ASTNode _if) {
+        Map<String, Object> data = new HashMap<String, Object>();
+        boolean everyGuardExecutable = true;
+        boolean containsElseGuard = false;
+        int elseGuardIndex = -1;
+        //Traverse the if and check for data
+        for (int i = 0; i < _if.jjtGetNumChildren(); ++i) {
+            ASTNode guard = _if.getChild(i);
+            ASTNode firstChild = guard.getFirstChild();
+
+            if (!firstChild.isAlwaysExecutable()) {
+                everyGuardExecutable = false;
+            }
+            if (firstChild.getNodeName().equals("Else")) {
+                containsElseGuard = true;
+                elseGuardIndex = i;
+            }
+        }
+        //Save our data and return
+        data.put("everyGuardExecutable", everyGuardExecutable);
+        data.put("containsElseGuard", containsElseGuard);
+        data.put("elseGuardIndex", elseGuardIndex);
+        return data;
+    }
+
+    private void translateRandomDecisionIf(ASTNode _if,
+            IndentedStringWriter writer) throws IOException {
+        writer.write("int decision = intrand(" + _if.jjtGetNumChildren() + ");"
+                + "\n");
+        for (int i = 0; i < _if.jjtGetNumChildren(); ++i) {
+            writer.write("if (decision == " + i + ") {\n");
+            writer.indent();
+            ASTNode guard = _if.getChild(i);
+            for (int j = 0; j < guard.jjtGetNumChildren(); ++j) {
+                translateInstruction(guard, j, writer);
+            }
+            writer.dedent();
+            writer.write("}\n");
+        }
+    }
+
+    private void translateIfElseIf(ASTNode _if, IndentedStringWriter writer)
+            throws IOException {
+        String code;
+        for (int i = 0; i < _if.jjtGetNumChildren(); ++i) {
+            int start = 1;
+            ASTNode guard = _if.getChild(i);
+            ASTNode guardCondition = guard.getFirstChild();
+            String guardConditionType = guardCondition.getNodeName();
+            if (guardConditionType.equals("Expression")) {
+                code = MessageFormat.format("if ({0}) '{'\n",
+                        guardCondition.toCppExpression());
+                writer.write(code);
+                writer.indent();
+            } else {
+                code = "else {\n";
+                writer.write(code);
+                writer.indent();
+                start = 0;
+            }
+            for (int j = start; j < guard.jjtGetNumChildren(); ++j) {
+                translateInstruction(guard, j, writer);
+            }
+            writer.dedent();
+            writer.write("}\n");
+        }
+    }
+
+    private void writeLocalVariableDeclarations(String processName,
+            List<ASTNode> localVariableDeclarations) throws IOException {
+        IndentedStringWriter writer =
+                template.getLocalVariableDeclarationWriter(processName);
+        writer.indent();
+        for (int i = 0; i < localVariableDeclarations.size(); ++i) {
+            ASTNode declaration = localVariableDeclarations.get(i);
+            if (declaration.getNodeName().equals("SimpleDeclaration")) {
+                translateSimpleDeclaration(declaration, writer);
+            } else if (declaration.getNodeName().equals("MultiDeclaration")) {
+                translateMultiDeclaration(declaration, writer);
+            }
+        }
+    }
+
+    private void translateSimpleDeclaration(ASTNode declaration,
+            IndentedStringWriter writer) throws IOException {
+        String typeName = declaration.getTypeName();
+        if (typeName.equals("message")) {
+            typeName += "_t";
+        }
+        String variableName = declaration.getName();
+        String code = typeName + " " + variableName;
+        code += ";\n";
+        writer.write(code);
+    }
+
+    private void translateMultiDeclaration(ASTNode declaration,
+            IndentedStringWriter writer) throws IOException {
+        String typeName = declaration.getTypeName();
+        List<String> variableNames = (List<String>)
+                declaration.getValue("names");
+        List<Integer> initializationValues = (List<Integer>)
+                declaration.getValue("initializationValues");
+        System.out.println(typeName);
+        System.out.println(variableNames);
+        System.out.println(initializationValues);
+        int k = 1;
+        for (int i = 0; i < variableNames.size(); ++i) {
+            String code = typeName + " " + variableNames.get(i);
+            if (initializationValues.contains(i)) {
+                ASTNode expression = declaration.getChild(k);
+                code += " = " + expression.toCppExpression();
+                ++k;
+            }
+            code += ";\n";
+            writer.write(code);
+        }
     }
 }

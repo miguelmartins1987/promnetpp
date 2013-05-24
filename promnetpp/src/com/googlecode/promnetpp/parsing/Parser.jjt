@@ -167,10 +167,30 @@ Token arrayCapacity;}
     ]
 }
 
-void MultiDeclaration() : {}
+void MultiDeclaration() : {String typeName; Token identifier;
+Token arrayCapacity;}
 {
-    TypeName() <IDENTIFIER> ["=" Expression()]
-    ("," <IDENTIFIER> ["=" Expression()])+
+    /* We need a few lists/general objects before we can proceed */
+    {
+        int count = 0;
+        List<String> names = new ArrayList<String>();
+        List<Integer> initializationValues = new ArrayList<Integer>();
+        jjtThis.putValue("names", names);
+        jjtThis.putValue("initializationValues", initializationValues);
+    }
+    
+    /* Now we can parse as normal */
+    typeName = TypeName() identifier = <IDENTIFIER>
+    { jjtThis.typeName = typeName; names.add(identifier.image); }
+    ["=" Expression() { initializationValues.add(count);} ]
+    
+    /* More identifiers follow */
+    (
+        { ++count; }
+        "," identifier = <IDENTIFIER>
+        { names.add(identifier.image); }
+        ["=" Expression() { initializationValues.add(count);} ]
+    )+
 }
 
 String TypeName() : {Token identifier;}

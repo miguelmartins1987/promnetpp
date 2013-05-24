@@ -27,8 +27,8 @@ public class RoundBasedProtocolGeneric extends Template {
     public RoundBasedProtocolGeneric() {
         super();
         name = "round_based_protocol_generic";
-        addStaticFile("init_process.h");
-        addStaticFile("init_process.cc");
+        addDynamicFile("init_process.h");
+        addDynamicFile("init_process.cc");
         addDynamicFile("_process.h");
         addDynamicFile("_process.cc");
     }
@@ -71,12 +71,24 @@ public class RoundBasedProtocolGeneric extends Template {
 
     @Override
     public void writeDynamicFiles() throws IOException {
+        //Handle header files first
+        String initProcessVariables = getLocalVariableDeclarationWriter("init")
+                .toString();
+        String processVariables = getLocalVariableDeclarationWriter("Process")
+                .toString();
+        setDynamicFileParameters("init_process.h", initProcessVariables);
+        setDynamicFileParameters("_process.h", processVariables);
+        //Handle .cc files now
         String computeMessageCode = getSpecificFunctionWriter(
                 "compute_message").toString();
         String stateTransitionCode = getSpecificFunctionWriter(
                 "state_transition").toString();
-        setDynamicFileParameters("_process.h", "message_t _message;\n" +
-                "    byte i, j, k, l;");
+        String systemEveryRoundCode = getSpecificFunctionWriter(
+                "system_every_round").toString();
+        String systemInitCode = getSpecificFunctionWriter(
+                "system_init").toString();
+        setDynamicFileParameters("init_process.cc", systemEveryRoundCode,
+                systemInitCode);
         setDynamicFileParameters("_process.cc", computeMessageCode,
                 stateTransitionCode);
         super.writeDynamicFiles();
