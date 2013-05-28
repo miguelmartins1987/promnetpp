@@ -9,8 +9,6 @@ private:
     virtual void initialize();
     virtual void handleMessage(cMessage* msg);
     virtual void finish();
-
-    int round_number;
     void do_new_round();
     void run_processes();
     //Functions

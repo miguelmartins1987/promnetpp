@@ -1,3 +1,0 @@
-init {
-    printf("Hello, world!")
-}

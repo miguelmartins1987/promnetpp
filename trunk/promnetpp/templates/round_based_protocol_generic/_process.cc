@@ -6,6 +6,7 @@
 #include <omnetpp.h>
 
 extern process_state state[];
+extern int round_id;
 
 void Process::initialize() '{'
     ProcessInterface::initialize();
@@ -42,8 +43,8 @@ void Process::handleMessage(cMessage* msg) '{'
         if (strcmp(sender_name, "init") == 0) '{'
             //"init" message
             if (strcmp(msg->getName(), "init") == 0) '{'
-                utilities::printf(this, "The process with PID %d has initial value"
-                        " %d\n", _pid, my_state.local_value);
+                utilities::printf(this, "MSC: P%d has initial value x=%d\n",
+                    _pid, my_state.local_value);
             '}'
             //"new_round" message
             else if (strcmp(msg->getName(), "new_round") == 0) '{'
