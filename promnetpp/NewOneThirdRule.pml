@@ -24,6 +24,8 @@ Modifications were done on the specification provided on April 23 2013:
 #define NUMBER_OF_PROCESSES 3
 #define NUMBER_OF_ASYNCHRONOUS_ROUNDS 1
 
+int round_id = 0;
+
 typedef message {
     byte value
 }
@@ -82,7 +84,8 @@ inline state_transition() {
             assert((my_state.decision_value == my_state.local_value)
                 || (my_state.decision_value == 0));
             my_state.decision_value = my_state.local_value;
-            printf("MSC: P%d decides %d\n", _pid, my_state.decision_value)
+            printf("MSC: P%d decides %d on round %d\n", _pid,
+                my_state.decision_value, round_id)
         :: else -> skip
         fi
     }
@@ -100,7 +103,8 @@ inline system_init() {
 }
 
 inline system_every_round() {
-    printf("MSC: new round\n");
+    round_id++;
+    printf("MSC: new round, id=%d\n", round_id);
 
     if
     :: remaining_asynchronous_rounds == 0 -> synchronous = true

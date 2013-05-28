@@ -14,14 +14,12 @@ import com.googlecode.promnetpp.other.StackManager;
 import com.googlecode.promnetpp.other.Utilities;
 import com.googlecode.promnetpp.parsing.ASTNode;
 import com.googlecode.promnetpp.parsing.AbstractSyntaxTree;
-import com.googlecode.promnetpp.translation.nodes.Channel;
 import com.googlecode.promnetpp.translation.nodes.Function;
 import com.googlecode.promnetpp.translation.nodes.Process;
 import com.googlecode.promnetpp.translation.templates.Template;
 import com.googlecode.promnetpp.utilities.IndentedStringWriter;
 import com.googlecode.promnetpp.utilities.IndentedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.HashMap;
@@ -325,26 +323,21 @@ public class StandardTranslator implements Translator {
         if (isArray) {
             arrayCapacity = simpleDeclaration.getValueAsString("arrayCapacity");
         }
-        if (typeName.equals("chan")) {
-            ASTNode channelInitialization = globalDeclaration.getSecondChild();
-            Channel channel = new Channel(identifier);
-            channel.buildFromInitialization(channelInitialization);
-            translateChannel(channel);
-        } else {
 
-            if (globalDeclaration.hasSingleChild()) {
-                globalDeclarations.write(typeName + " " + identifier);
-                if (isArray) {
-                    globalDeclarations.write("[");
-                    globalDeclarations.write(arrayCapacity);
-                    globalDeclarations.write("]");
-                } else if (typeName.equals("byte") || typeName.equals("short")
-                        || typeName.equals("int")) {
-                    globalDeclarations.write(" = 0");
-                }
-                globalDeclarations.write(";\n");
+        globalDeclarations.write(typeName + " " + identifier);
+        if (isArray) {
+            globalDeclarations.write("[");
+            globalDeclarations.write(arrayCapacity);
+            globalDeclarations.write("]");
+        }
+        if (globalDeclaration.hasMultipleChildren()) {
+            ASTNode assignmentValue = globalDeclaration.getSecondChild();
+            if (assignmentValue.getNodeName().equals("Expression")) {
+                globalDeclarations.write(" = " +
+                        assignmentValue.toCppExpression());
             }
         }
+        globalDeclarations.write(";\n");
     }
 
     private void handleAnnotatedComment(String comment) {
@@ -492,51 +485,6 @@ public class StandardTranslator implements Translator {
                 translateInstruction(instructions, i, writer);
             }
             writer.dedent();
-        }
-    }
-
-    private void translateChannel(Channel channel) {
-        //Handle the header file first (.h)
-        String headerFileLocation = Options.outputDirectory + "/"
-                + channel.toCppHeaderFileName();
-        FileWriter headerFileWriter;
-        try {
-            headerFileWriter = new FileWriter(headerFileLocation);
-            String headerFileContents = FileUtils.readFileToString(new File(
-                    "templates/private/channel.h"));
-            headerFileContents = MessageFormat.format(headerFileContents,
-                    new Object[]{channel.toCppHeaderName(),
-                channel.toCppClassName()});
-            headerFileWriter.write(headerFileContents);
-            headerFileWriter.close();
-        } catch (IOException ex) {
-            Logger.getLogger(StandardTranslator.class.getName()).log(
-                    Level.SEVERE, null, ex);
-            System.err.println("Unable to write header file for a channel: "
-                    + headerFileLocation);
-            System.err.println(ex);
-            System.exit(1);
-        }
-        //Now handle the source file (.cc)
-        String sourceFileLocation = Options.outputDirectory + "/"
-                + channel.toCppSourceFileName();
-        FileWriter sourceFileWriter;
-        try {
-            sourceFileWriter = new FileWriter(sourceFileLocation);
-            String sourceFileContents = FileUtils.readFileToString(new File(
-                    "templates/private/channel.cc"));
-            sourceFileContents = MessageFormat.format(sourceFileContents,
-                    new Object[]{channel.toCppHeaderFileName(),
-                channel.toCppClassName()});
-            sourceFileWriter.write(sourceFileContents);
-            sourceFileWriter.close();
-        } catch (IOException ex) {
-            Logger.getLogger(StandardTranslator.class.getName()).log(
-                    Level.SEVERE, null, ex);
-            System.err.println("Unable to write source file for a channel: "
-                    + sourceFileLocation);
-            System.err.println(ex);
-            System.exit(1);
         }
     }
 
@@ -790,10 +738,8 @@ public class StandardTranslator implements Translator {
     private void translateMultiDeclaration(ASTNode declaration,
             IndentedStringWriter writer) throws IOException {
         String typeName = declaration.getTypeName();
-        List<String> variableNames = (List<String>)
-                declaration.getValue("names");
-        List<Integer> initializationValues = (List<Integer>)
-                declaration.getValue("initializationValues");
+        List<String> variableNames = (List<String>) declaration.getValue("names");
+        List<Integer> initializationValues = (List<Integer>) declaration.getValue("initializationValues");
         System.out.println(typeName);
         System.out.println(variableNames);
         System.out.println(initializationValues);

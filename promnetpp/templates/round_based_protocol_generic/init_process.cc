@@ -4,11 +4,11 @@
 
 extern process_state state[];
 extern byte number_of_processes_in_current_round;
+extern int round_id;
 
 void InitProcess::initialize() '{'
     ProcessInterface::initialize();
     _pid = 0;
-    round_number = 0;
     memset(state, 0, sizeof(process_state) * NUMBER_OF_PROCESSES);
     //Do the actual work
     system_init();
@@ -19,7 +19,6 @@ void InitProcess::initialize() '{'
 void InitProcess::handleMessage(cMessage* msg) '{'
     if (msg->isSelfMessage()) '{'
         if (number_of_processes_in_current_round == 0) '{'
-            ++round_number;
             system_every_round();
             do_new_round();
         '}'
@@ -34,7 +33,6 @@ void InitProcess::handleMessage(cMessage* msg) '{'
         '}' else if (strcmp(msg->getName(), "finished") == 0) '{'
             --number_of_processes_in_current_round;
             if (number_of_processes_in_current_round == 0) '{'
-                utilities::printf(this, "Round %d over!\n", round_number);
                 scheduleAt(simTime(), empty_message);
             '}'
         '}'
