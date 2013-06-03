@@ -9,6 +9,7 @@
  */
 package com.googlecode.promnetpp.main;
 
+import com.googlecode.promnetpp.verification.StandardVerifier;
 import com.googlecode.promnetpp.options.Options;
 import com.googlecode.promnetpp.other.Utilities;
 import com.googlecode.promnetpp.parsing.AbstractSyntaxTree;
@@ -16,6 +17,7 @@ import com.googlecode.promnetpp.parsing.PROMELAParser;
 import com.googlecode.promnetpp.parsing.ParseException;
 import com.googlecode.promnetpp.translation.StandardTranslator;
 import com.googlecode.promnetpp.translation.Translator;
+import com.googlecode.promnetpp.verification.Verifier;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
@@ -96,11 +98,27 @@ public class Main {
         //We must have a file name or path at this point
         assert fileNameOrPath != null : "Unspecified file name or"
                 + " path to file!";
-        
+
         //Log basic info
         Logger.getLogger(Main.class.getName()).log(Level.INFO, "Running"
                 + " PROMNeT++ from {0}", System.getProperty("user.dir"));
-        //Load and parse the XML for the configuration file
+        //Final steps
+        loadXMLFile();
+        if (!Options.skipVerification) {
+            Verifier verifier = new StandardVerifier(fileNameOrPath);
+            verifier.doVerification();
+            assert verifier.isErrorFree() : "Errors reported during model"
+                    + " verification!";
+            verifier.finish();
+        }
+        buildAbstractSyntaxTree();
+        Translator translator = new StandardTranslator();
+        translator.init();
+        translator.translate(abstractSyntaxTree);
+        translator.finish();
+    }
+
+    private static void loadXMLFile() {
         Logger.getLogger(Main.class.getName()).log(Level.INFO, "Loading "
                 + "configuration from file {0}", configurationFilePath);
         File configurationFile = new File(configurationFilePath);
@@ -117,13 +135,16 @@ public class Main {
                 + " malformed! Root element must be " + expectedRootElementName
                 + ". Found: " + actualRootElementName;
         Options.fromDocument(configurationDocument);
+    }
+
+    private static void buildAbstractSyntaxTree() {
         StringReader reader = null;
         try {
             String sourceCode = FileUtils.readFileToString(new File(
                     fileNameOrPath));
             reader = new StringReader(sourceCode);
         } catch (IOException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            System.err.println(ex);
             System.exit(1);
         }
         PROMELAParser parser = new PROMELAParser(reader);
@@ -136,9 +157,5 @@ public class Main {
         }
         assert abstractSyntaxTree != null : "Could not build an"
                 + " abstract syntax tree!";
-        Translator translator = new StandardTranslator();
-        translator.init();
-        translator.translate(abstractSyntaxTree);
-        translator.finish();
     }
 }

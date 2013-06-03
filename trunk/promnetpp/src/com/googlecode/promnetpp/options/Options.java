@@ -26,16 +26,15 @@ import org.w3c.dom.NodeList;
  * @author Miguel Martins
  */
 public class Options {
-
-    /**
-     * Whether or not the tool should generate one class per channel type
-     */
-    public static boolean perChannelTypeClasses = true;
+    
     /**
      * Directory where the resulting files from the translation process should
      * go to
      */
     public static String outputDirectory = System.getProperty("user.dir");
+    public static boolean skipVerification = false;
+    public static String spinHome = "";
+    public static String panCompiler = "gcc";
 
     /**
      * Sets the options given an XML configuration document.
@@ -80,12 +79,11 @@ public class Options {
             outputDirectory = optionValue;
             Logger.getLogger(Options.class.getName()).log(Level.INFO, "Will "
                     + "output files to directory {0}", outputDirectory);
-        } else if (optionName.equals("perChannelTypeClasses")) {
-            if (optionValue.equals("true")) {
-                perChannelTypeClasses = true;
-            } else if (optionValue.equals("false")) {
-                perChannelTypeClasses = false;
-            }
+        } else if (optionName.equals("spinHome")) {
+            spinHome = optionValue;
+            Logger.getLogger(Options.class.getName()).log(Level.INFO, "Spin is "
+                    + " located in {0} according to configuration file.",
+                    spinHome);
         }
     }
 }
