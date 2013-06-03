@@ -225,10 +225,6 @@ public class StandardTranslator implements Translator {
                         }
                         List<ASTNode> localVariableDeclarations =
                                 currentChild.getLocalVariableDeclarations();
-                        System.out.println("Found "
-                                + localVariableDeclarations.size() + " local"
-                                + " variable declarations for process "
-                                + processName + ".");
                         writeLocalVariableDeclarations(processName,
                                 localVariableDeclarations);
                     }
@@ -740,9 +736,6 @@ public class StandardTranslator implements Translator {
         String typeName = declaration.getTypeName();
         List<String> variableNames = (List<String>) declaration.getValue("names");
         List<Integer> initializationValues = (List<Integer>) declaration.getValue("initializationValues");
-        System.out.println(typeName);
-        System.out.println(variableNames);
-        System.out.println(initializationValues);
         int k = 1;
         for (int i = 0; i < variableNames.size(); ++i) {
             String code = typeName + " " + variableNames.get(i);

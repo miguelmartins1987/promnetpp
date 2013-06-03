@@ -27,7 +27,7 @@ Modifications were done on the specification provided on April 23 2013:
 int round_id = 0;
 
 typedef message {
-    byte value
+    byte value;
 }
 
 typedef process_state {
