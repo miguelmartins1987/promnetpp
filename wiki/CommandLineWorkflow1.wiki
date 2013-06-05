@@ -18,8 +18,8 @@ Like many Java applications, PROMNeT++ is distributed, in binary form, as a JAR 
 == Phase 1 - Performing the translation ==
 
   # Navigate to your OMNeT++ workspace directory. By default, assuming OMNeT++ is installed under _C:\omnetpp-4.3_, said workspace directory is located under under _C:\omnetpp-4.3\samples_
-  # Create a new folder for your (soon to be) OMNeT++ project, in this case, _OneThirdRule_ <br><br>https://promnetpp.googlecode.com/svn/media/CreateFolderOneThirdRule.png
-  # Navigate to the folder you just created and copy the PROMELA model (typically, a file with a _.pml_ extension) that is to be submitted for translation to it. For this guide, said model is _NewOneThirdRule.pml_<br><br>https://promnetpp.googlecode.com/svn/media/CopyPMLFile.png
+  # Create a new folder for your (soon to be) OMNeT++ project, in this case, _!OneThirdRule_ <br><br>https://promnetpp.googlecode.com/svn/media/CreateFolderOneThirdRule.png
+  # Navigate to the folder you just created and copy the PROMELA model (typically, a file with a _.pml_ extension) that is to be submitted for translation to it. For this guide, said model is _!NewOneThirdRule.pml_<br><br>https://promnetpp.googlecode.com/svn/media/CopyPMLFile.png
   # Open a command prompt/shell/terminal at your current location. In Windows Vista and above, this can be easily done by holding down either of the _Shift_ keys and choosing the _Open command window here_ option.
   # Type in (or copy and paste) the following commands:
 {{{
