@@ -12,3 +12,15 @@ This Wiki page is probably very similar to CommandLineWorkflow1, and should also
   * PROMNeT++ (its JAR file and any other files that come with its standard distribution) must have been extracted to a directory of your choice; this guide will assume _C:\promnetpp_ as said directory.
     * If you haven't done so already, head over to the <a href="https://code.google.com/p/promnetpp/downloads/list">_Downloads_</a> page and download the latest PROMNeT++ release (PROMNeT++ Alpha 2 as of this guide's time of writing).
     * The screenshot below illustrates the contents of PROMNeT++'s standard distribution.<br><br>https://promnetpp.googlecode.com/svn/media/Distribution1.png
+
+= Steps =
+
+  # First and foremost, you must choose a directory for both your PROMELA model and your translated files. This can be any directory of your choice, _just as long as you have the adequate permissions to read from and write files to that directory_. For this guide, I am using a folder called "my promnetpp workspace" under my C: drive, in Windows (i.e. C:\my promnetpp workspace).<br><br>https://promnetpp.googlecode.com/svn/media/MyPromnetppWorkspaceEmpty.png
+  # *From this point on, the directory you chose in the previous step shall be referred to as "the workspace"*.
+  # Copy your PROMELA model and the _default-configuration.xml_ file that comes with PROMNeT++ to the workspace. We'll be using the _!NewOneThirdRule.pml_ model packaged with the distribution.<br><br>https://promnetpp.googlecode.com/svn/media/MyPromnetppWorkspace.png
+  # Open a command prompt/shell/terminal at the workspace. In Windows Vista and above, this can be easily done by holding down either of the _Shift_ keys and choosing the _Open command window here_ option.
+  # Type in (or copy and paste) the following commands:
+{{{
+set PROMNETPP_HOME=C:\promnetpp
+java -enableassertions -jar "%PROMNETPP_HOME%\promnetpp.jar" NewOneThirdRule.pml
+}}}
