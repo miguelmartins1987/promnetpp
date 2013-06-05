@@ -1,4 +1,4 @@
-#summary Basic how-to on PROMNeT++, mainly for researchers.
+#summary [OS X] Basic how-to on PROMNeT++, mainly for researchers.
 #labels Phase-Deploy,Featured
 
 = Introduction =
