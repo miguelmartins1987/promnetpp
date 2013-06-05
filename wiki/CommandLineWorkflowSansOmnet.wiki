@@ -3,6 +3,6 @@
 
 = Introduction =
 
-If you're a researcher (or perhaps my internship's supervisor https://promnetpp.googlecode.com/svn/media/smiley-face-small.png), then you might not care about OMNeT++ at all, but are interested instead in either analyzing how PROMNeT++ generates code and/or want to reuse said code. This is the case for a number of researchers out there, who would like to run the code in real-time systems.
+If you're a researcher (or perhaps my internship's supervisor https://promnetpp.googlecode.com/svn/media/smiley-face-16px.png), then you might not care about OMNeT++ at all, but are interested instead in either analyzing how PROMNeT++ generates code and/or want to reuse said code. This is the case for a number of researchers out there, who would like to run the code in real-time systems.
 
 As with CommandLineWorkflow1, this Wiki page shall serve as a guide to perform a PROMELA to C++ translation via the command line, but it will not make use of OMNeT++ at all.
