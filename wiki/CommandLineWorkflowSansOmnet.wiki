@@ -24,3 +24,5 @@ This Wiki page is probably very similar to CommandLineWorkflow1, and should also
 set PROMNETPP_HOME=C:\promnetpp
 java -enableassertions -jar "%PROMNETPP_HOME%\promnetpp.jar" NewOneThirdRule.pml
 }}}
+  # Wait for the tool to finish its verification/translation procedure.
+  # If no errors occurred, you should now be in possession of the generated source code files, as illustrated in the screenshot below.<br><br>https://promnetpp.googlecode.com/svn/media/MyPromnetppWorkspaceFull.png
