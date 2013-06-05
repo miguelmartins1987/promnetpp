@@ -9,6 +9,6 @@ If you're a researcher (or perhaps my internship's supervisor https://promnetpp.
 
 = Prerequisites for this Workflow =
 
-  * PROMNeT++ (its JAR file and any other files that come with its standard distribution) must have been extracted to a directory of your choice; this guide will assume _C:\promnetpp_ as said directory.
+  * PROMNeT++ (its JAR file and any other files that come with its standard distribution) must have been extracted to a directory of your choice; this guide will assume _TODO: put a suitable directory here_ as said directory.
     * If you haven't done so already, head over to the <a href="https://code.google.com/p/promnetpp/downloads/list">_Downloads_</a> page and download the latest PROMNeT++ release (PROMNeT++ Alpha 2 as of this guide's time of writing).
     * The screenshot below illustrates the contents of PROMNeT++'s standard distribution.<br><br>
