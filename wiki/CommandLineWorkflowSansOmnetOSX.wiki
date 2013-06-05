@@ -1,0 +1,14 @@
+#summary Basic how-to on PROMNeT++, mainly for researchers.
+#labels Phase-Deploy,Featured
+
+= Introduction =
+
+If you're a researcher (or perhaps my internship's supervisor https://promnetpp.googlecode.com/svn/media/smiley-face-md-16px.png), then you might not care about OMNeT++ at all, but are interested instead in either analyzing how PROMNeT++ generates code and/or want to reuse said code. This is the case for a number of researchers out there, who would like to run the code in real-time systems.
+
+*This guide is pretty much the same as CommandLineWorkflowSansOmnet, but it's targetted specifically for OS X users (my internship's supervisor, in particular).
+
+= Prerequisites for this Workflow =
+
+  * PROMNeT++ (its JAR file and any other files that come with its standard distribution) must have been extracted to a directory of your choice; this guide will assume _C:\promnetpp_ as said directory.
+    * If you haven't done so already, head over to the <a href="https://code.google.com/p/promnetpp/downloads/list">_Downloads_</a> page and download the latest PROMNeT++ release (PROMNeT++ Alpha 2 as of this guide's time of writing).
+    * The screenshot below illustrates the contents of PROMNeT++'s standard distribution.<br><br>
