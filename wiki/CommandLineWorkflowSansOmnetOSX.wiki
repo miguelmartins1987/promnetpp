@@ -26,3 +26,11 @@ If you're a researcher (or perhaps my internship's supervisor https://promnetpp.
 {{{
 <simpleOption name="spinHome" value="/Users/miguel/Spin" />
 }}}
+    * Remember to save any changes to the configuration file when done.
+  # Once you have completed the above step, you must then choose a directory for both your PROMELA model and your translated files. This can be any directory of your choice, _just as long as you have the adequate permissions to read from and write files to that directory_. We will refer to this directory as the *PROMNeT++ workspace*, or *workspace* for short. For this guide, the workspace is located under _/Users/miguel/my promnetpp workspace_<br><br>https://promnetpp.googlecode.com/svn/media/MyPromnetppWorkspaceOSX.png
+  # Copy your PROMELA model and the _default-configuration.xml_ file that comes with PROMNeT++ to the workspace. We'll be using the _!NewOneThirdRule.pml_ model packaged with the distribution.<br><br>https://promnetpp.googlecode.com/svn/media/MyPromnetppWorkspaceOSXcont.png
+  # Open a terminal, and type in (or copy and paste) the following commands:
+{{{
+cd /Users/miguel/"my promnetpp workspace"/
+export PROMNETPP_HOME=/Users/miguel/promnetpp
+}}}
