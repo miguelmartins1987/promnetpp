@@ -4,9 +4,19 @@
 
 Installing Spin under OS X is relatively simple, and necessary if you're a OS X user who wants PROMNeT++ to verify your model before translating it to C++ code.
 
+= Prerequisites =
+
+Working versions of _GCC_ and _make_ should be installed on your OS X system. That is, it should be possible to execute each of the following commands in a terminal without fail:
+
+{{{
+gcc --version
+make --version
+}}}
+
 = Steps =
 
   # Download the latest Spin distribution labelled _Full distribution, with sources_ from the <a href="http://spinroot.com/spin/Src/index.html">official distribution page</a>. At this guide's time of writing, said distribution is an archive named _spin625.tar.gz_
   # Extract the archive's contents to a directory of your choice. For this guide, we'll be using _/Users/miguel_ (my home folder), as the screenshot below illustrates.<br><br>https://promnetpp.googlecode.com/svn/media/OSXHomeDirectoryWithSpin.png
   # Open a terminal, and navigate to _/Users/miguel/Spin_, as per the screenshot below. The full Spin distribution should contain Spin's source code under a _Src<x.y.z>_ folder. A _README.html_ file should also be present. Spin also packages some samples under the _Samples_ folder; _iSpin_ is also included.<br><br>https://promnetpp.googlecode.com/svn/media/OSXSpinDistributionTerminal.png
-  # Navigate to the _Src<x.y.z>_ folder and open the _makefile_ with a text editor. Simply typing _open makefile_ as a command should suffice for most users; by default, it should open the Makefile with TextEdit.
+  # Navigate to the _Src<x.y.z>_ folder and open the _makefile_ with a text editor. Simply typing _open makefile_ as a command should suffice for most users; by default, it should open the Makefile with !TextEdit.
+  # Since we're compiling under
