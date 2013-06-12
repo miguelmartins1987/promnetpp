@@ -9,6 +9,7 @@ This Wiki page is to be regarded as a guide to perform a PROMELA to C++ translat
 
 = Prerequisites for this Workflow =
 
+  * PROMNeT++ requires Java 6 or higher to function. Install a JRE on your system, if none is present.
   * PROMNeT++ (its JAR file and any other files that come with its standard distribution) must have been extracted to a directory of your choice; this guide will assume _C:\promnetpp_ as said directory.
     * If you haven't done so already, head over to the <a href="https://code.google.com/p/promnetpp/downloads/list">_Downloads_</a> page and download the latest PROMNeT++ release (PROMNeT++ Alpha 2 as of this guide's time of writing).
     * The screenshot below illustrates the contents of PROMNeT++'s standard distribution.<br><br>https://promnetpp.googlecode.com/svn/media/Distribution1.png
