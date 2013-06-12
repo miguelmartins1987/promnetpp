@@ -33,4 +33,5 @@ If you're a researcher (or perhaps my internship's supervisor https://promnetpp.
 {{{
 cd /Users/miguel/"my promnetpp workspace"/
 export PROMNETPP_HOME=/Users/miguel/promnetpp
+java -enableassertions -jar $PROMNETPP_HOME/promnetpp.jar NewOneThirdRule.pml
 }}}
