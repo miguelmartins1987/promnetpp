@@ -1,0 +1,9 @@
+#summary Short guide on how to install Spin on OS X
+
+= Introduction =
+
+Installing Spin under OS X is relatively simple, and necessary if you're a OS X user who wants PROMNeT++ to verify your model before translating it to C++ code.
+
+= Steps =
+
+  # Download the latest Spin distribution labelled _Full distribution, with sources_ from the <a href="http://spinroot.com/spin/Src/index.html">official distribution page</a>.
