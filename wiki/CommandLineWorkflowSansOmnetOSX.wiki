@@ -35,3 +35,10 @@ cd /Users/miguel/"my promnetpp workspace"/
 export PROMNETPP_HOME=/Users/miguel/promnetpp
 java -enableassertions -jar $PROMNETPP_HOME/promnetpp.jar NewOneThirdRule.pml
 }}}
+  # Wait for the tool to finish its verification/translation procedure.
+  # If no errors occurred, you should now be in possession of the generated source code files, as illustrated in the screenshot below.<br><br>https://promnetpp.googlecode.com/svn/media/MyPromnetppWorkspaceFull.png
+
+= Final remarks/Troubleshooting =
+
+  * If the verification/translation procedure did not complete without errors, paying close attention to PROMNeT++'s output should help you correct the problem(s). If not, PROMNeT++ also keeps a log file, named _promnetpp-log.xml_, which is also useful for troubleshooting purposes.
+  * *It is entirely up to you, the user, to determine how you will use the generated source code files.* Once you're in possession of them, you're free to look at, or even copy portions of the code for your own personal use.
