@@ -14,3 +14,7 @@ If you're a researcher (or perhaps my internship's supervisor https://promnetpp.
     * If you haven't done so already, head over to the <a href="https://code.google.com/p/promnetpp/downloads/list">_Downloads_</a> page and download the latest PROMNeT++ release (PROMNeT++ Alpha 2 as of this guide's time of writing).
     * The screenshot below illustrates the contents of PROMNeT++'s standard distribution.<br><br>https://promnetpp.googlecode.com/svn/media/Distribution2.png
     * <a href="http://spinroot.com/">Spin</a> must have been compiled from source and installed to a directory of your choice. Refer to <a href="https://code.google.com/p/promnetpp/wiki/InstallSpinOSX">this</a> guide for instructions on how to do this.
+
+= Steps =
+
+  # Assuming PROMNeT++ has been extracted to a directory of your choice, as per the above prerequisites, you (the user) must, first and foremost, edit the _default-configuration.xml_ file that's packaged with the distribution, by using a text editor. We'll be editing the option named "spinHome", so that PROMNeT++ knows where to find Spin (for verification purposes).
