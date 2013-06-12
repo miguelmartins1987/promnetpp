@@ -11,7 +11,7 @@ This Wiki page is to be regarded as a guide to perform a PROMELA to C++ translat
 
   * PROMNeT++ requires Java 6 or higher to function. Install a JRE on your system, if none is present.
   * PROMNeT++ (its JAR file and any other files that come with its standard distribution) must have been extracted to a directory of your choice; this guide will assume _C:\promnetpp_ as said directory.
-    * If you haven't done so already, head over to the <a href="https://code.google.com/p/promnetpp/downloads/list">_Downloads_</a> page and download the latest PROMNeT++ release (PROMNeT++ Alpha 2 as of this guide's time of writing).
+    * If you haven't done so already, head over to the <a href="https://code.google.com/p/promnetpp/downloads/list">_Downloads_</a> page and download the latest PROMNeT++ release (PROMNeT++ Alpha 3 as of this guide's time of writing).
     * The screenshot below illustrates the contents of PROMNeT++'s standard distribution.<br><br>https://promnetpp.googlecode.com/svn/media/Distribution1.png
   * <a href="http://spinroot.com/">Spin</a> must have been compiled from source (where applicable) and installed to a directory of your choice. The _default-configuration.xml_ file that's packaged with PROMNeT++ assumes that Spin is installed under _C:/spin_, which is a Windows directory. However, since PROMNeT++ is cross-platform (as is Spin), Linux and OS X users can also use their directory of choice.
     * This guide covers how this configuration file should be edited in the next section.
