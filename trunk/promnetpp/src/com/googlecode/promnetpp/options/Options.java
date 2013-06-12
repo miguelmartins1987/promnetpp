@@ -84,6 +84,21 @@ public class Options {
             Logger.getLogger(Options.class.getName()).log(Level.INFO, "Spin is "
                     + " located in {0} according to configuration file.",
                     spinHome);
+        } else if (optionName.equals("skipVerification")) {
+            skipVerification = getOptionValueAsBoolean(optionName, optionValue); 
         }
+    }
+
+    private static boolean getOptionValueAsBoolean(String optionName,
+            String optionValue) {
+        if (optionValue.equals("true")) {
+            return true;
+        } else if (optionValue.equals("false")) {
+            return false;
+        }
+        assert false : "Invalid value for option " + optionName + ": "
+                + optionValue + "\n"
+                + "Value must be either \"true\" or \"false\".";
+        return false;
     }
 }
