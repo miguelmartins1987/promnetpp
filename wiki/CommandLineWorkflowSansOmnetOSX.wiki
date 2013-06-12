@@ -18,3 +18,11 @@ If you're a researcher (or perhaps my internship's supervisor https://promnetpp.
 = Steps =
 
   # Assuming PROMNeT++ has been extracted to a directory of your choice, as per the above prerequisites, you (the user) must, first and foremost, edit the _default-configuration.xml_ file that's packaged with the distribution, by using a text editor. We'll be editing the option named "spinHome", so that PROMNeT++ knows where to find Spin (for verification purposes).
+    * There should be a line in the configuration file similar to
+{{{
+<simpleOption name="spinHome" value="C:/spin" />
+}}}
+    * All that's required in this step is to edit the value of the "simpleOption". You need to make sure that it points to the directory where Spin is installed. For this guide, the Spin distribution, and Spin's executable, are located under _/Users/miguel/Spin_. Thus, the above line becomes:
+{{{
+<simpleOption name="spinHome" value="/Users/miguel/Spin" />
+}}}
