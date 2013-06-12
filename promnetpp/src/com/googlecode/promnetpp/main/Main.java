@@ -104,13 +104,11 @@ public class Main {
                 + " PROMNeT++ from {0}", System.getProperty("user.dir"));
         //Final steps
         loadXMLFile();
-        if (!Options.skipVerification) {
-            Verifier verifier = new StandardVerifier(fileNameOrPath);
-            verifier.doVerification();
-            assert verifier.isErrorFree() : "Errors reported during model"
-                    + " verification!";
+        Verifier verifier = new StandardVerifier(fileNameOrPath);
+        verifier.doVerification();
+        assert verifier.isErrorFree() : "Errors reported during model"
+                + " verification!";
             verifier.finish();
-        }
         buildAbstractSyntaxTree();
         Translator translator = new StandardTranslator();
         translator.init();

@@ -13,7 +13,6 @@ import com.googlecode.promnetpp.options.Options;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,6 +25,7 @@ public class StandardVerifier extends Verifier {
 
     private String pathToInputFile;
     private boolean containsErrors;
+    private boolean verificationSkipped;
 
     public StandardVerifier(String pathToInputFile) {
         this.pathToInputFile = pathToInputFile;
@@ -44,7 +44,7 @@ public class StandardVerifier extends Verifier {
         ProcessBuilder processBuilder = new ProcessBuilder(pathToSpin, "-a",
                 pathToInputFile);
         try {
-            System.out.println("Performing verification...");
+            System.out.println("Checking for errors in the PROMELA model...");
             System.out.println(processBuilder.command());
             Process spinProcess = processBuilder.start();
             spinProcess.waitFor();
@@ -57,9 +57,19 @@ public class StandardVerifier extends Verifier {
                 System.err.println(output);
                 containsErrors = true;
             } else {
-                System.out.println("No errors found so far. Compile and run"
-                        + " PAN...");
-                compileAndRunPAN();
+                System.out.println("No errors found so far.");
+                if (Options.skipVerification) {
+                    System.err.println("WARNING: User has chosen to skip the"
+                            + " verification procedure.");
+                    System.err.println("PROMNeT++ does not guarantee an"
+                            + " accurate translation for unverified models.");
+                    System.err.println("Visit https://code.google.com/p/"
+                            + "promnetpp/wiki/TroubleShooting1 for more"
+                            + " details.");
+                    verificationSkipped = true;
+                } else {
+                    compileAndRunPAN();
+                }
             }
         } catch (IOException ex) {
             Logger.getLogger(StandardVerifier.class.getName()).log(Level.SEVERE,
@@ -90,8 +100,13 @@ public class StandardVerifier extends Verifier {
             deleteFileIfExists(file);
         }
         //Notify the user that we're done
-        System.out.println("Verification complete. Proceeding to the"
-                + " translation process...");
+        if (verificationSkipped) {
+            System.out.print("Verification skipped.");
+        } else {
+            System.out.print("Verification complete.");
+        }
+        System.out.print(" ");
+        System.out.println("Proceeding to the translation process...");
         System.out.println();
     }
 
@@ -123,7 +138,7 @@ public class StandardVerifier extends Verifier {
             System.out.println("PAN has been successfully compiled. Running PAN"
                     + " now...");
             //Run
-            processBuilder = new ProcessBuilder("pan");
+            processBuilder = new ProcessBuilder("./pan");
             System.out.println(processBuilder.command());
             Process PAN = processBuilder.start();
             exitValue = PAN.waitFor();
