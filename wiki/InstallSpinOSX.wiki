@@ -19,4 +19,10 @@ make --version
   # Extract the archive's contents to a directory of your choice. For this guide, we'll be using _/Users/miguel_ (my home folder), as the screenshot below illustrates.<br><br>https://promnetpp.googlecode.com/svn/media/OSXHomeDirectoryWithSpin.png
   # Open a terminal, and navigate to _/Users/miguel/Spin_, as per the screenshot below. The full Spin distribution should contain Spin's source code under a _Src<x.y.z>_ folder. A _README.html_ file should also be present. Spin also packages some samples under the _Samples_ folder; _iSpin_ is also included.<br><br>https://promnetpp.googlecode.com/svn/media/OSXSpinDistributionTerminal.png
   # Navigate to the _Src<x.y.z>_ folder and open the _makefile_ with a text editor. Simply typing _open makefile_ as a command should suffice for most users; by default, it should open the Makefile with !TextEdit.
-  # Since we're compiling under
+  # Since we're compiling under OS X, it is necessary to append _-DMAC_ to the _CFLAGS_ variable, as illustrated below.<br><br>https://promnetpp.googlecode.com/svn/media/OSXSpinMakeFile.png
+  # Save your changes to the Makefile, return to the terminal, and type in the following commands:
+{{{
+make
+cp spin ..
+}}}
+  # If done correctly, and assuming _make_ did not report any errors during compilation, your Spin folder should now contain Spin's executable.<br><br>https://promnetpp.googlecode.com/svn/media/OSXSpinDirectoryWithExecutable.png
