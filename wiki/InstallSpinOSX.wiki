@@ -8,4 +8,13 @@ Installing Spin under OS X is relatively simple, and necessary if you're a OS X 
 
   # Download the latest Spin distribution labelled _Full distribution, with sources_ from the <a href="http://spinroot.com/spin/Src/index.html">official distribution page</a>. At this guide's time of writing, said distribution is an archive named _spin625.tar.gz_
   # Extract the archive's contents to a directory of your choice. For this guide, we'll be using _/Users/miguel_ (my home folder), as the screenshot below illustrates.<br><br>https://promnetpp.googlecode.com/svn/media/OSXHomeDirectoryWithSpin.png
-  # Open a terminal, and navigate to _/Users/miguel/Spin_, as per the screenshot below. The full Spin distribution should contain Spin's source code under a _Src<x.y.z>_ folder. A _README.html_ file should also be present. Spin also packages some samples under the _Samples_ folder; _iSpin_ is also included.
+  # Open a terminal, and navigate to _/Users/miguel/Spin_, as per the screenshot below. The full Spin distribution should contain Spin's source code under a _Src<x.y.z>_ folder. A _README.html_ file should also be present. Spin also packages some samples under the _Samples_ folder; _iSpin_ is also included.<br><br>https://promnetpp.googlecode.com/svn/media/OSXSpinDistributionTerminal.png
+  # At this point, type in the following commands:
+{{{
+# ------------------------------------------------------------------------------
+# Remember to change Src6.2.5 to Src<x.y.z>, where <x.y.z> corresponds to
+# whichever version of Spin you're installing.
+# ------------------------------------------------------------------------------
+
+cd Src6.2.5
+}}}
