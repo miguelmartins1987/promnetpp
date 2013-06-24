@@ -9,11 +9,9 @@
  */
 package com.googlecode.promnetpp.eclipseplugin;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -26,7 +24,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 public class TranslateWizard extends Wizard {
@@ -43,6 +41,11 @@ public class TranslateWizard extends Wizard {
 
 	@Override
 	public boolean performFinish() {
+		Shell messageWindowShell = new Shell();
+		MessageWindow messageWindow = new MessageWindow(messageWindowShell);
+		messageWindow.open();
+		messageWindow.appendOutputText("Building PROMNeT++'s process...", true);
+		
 		ProcessBuilder processBuilder = new ProcessBuilder("java",
 				"-enableassertions",
 				"-jar", "\"" + page.getJARFilePath() + "\"",
@@ -52,28 +55,10 @@ public class TranslateWizard extends Wizard {
 		processBuilder.directory(project.getLocation().toFile());
 		processBuilder.environment().put("PROMNETPP_HOME",
 				page.getPROMNeTppHomeVariable());
-		try {
-			Process process = processBuilder.start();
-			int returnCode = process.waitFor();
-			if (returnCode != 0) {
-				InputStream errorStream = process.getErrorStream();
-				byte [] errorBytes = new byte[errorStream.available()];
-				errorStream.read(errorBytes);
-				String error = new String(errorBytes);
-				MessageBox errorBox = new MessageBox(getShell(),
-						SWT.OK | SWT.ICON_ERROR);
-				errorBox.setMessage("An errror has occurred.\n\n" + error);
-				errorBox.open();
-			} else {
-				MessageBox successBox = new MessageBox(getShell(), SWT.OK);
-				successBox.setMessage("Translation complete.");
-				successBox.open();
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		
+		messageWindow.appendOutputText("Starting PROMNeT++...", true);
+		messageWindow.refresh();
+		messageWindow.startProcess(processBuilder);
 		return true;
 	}
 
@@ -90,6 +75,8 @@ public class TranslateWizard extends Wizard {
 		private Composite container;
 		private Button specifyConfigurationFileButton;
 		private Button useDefaultConfigurationButton;
+		private Button sameAsJarButton;
+		private Button otherLocationButton;
 		private Text configurationFileText;
 		private Text JARFileConfigurationText;
 		private Text PROMNeTppHomeText;
@@ -140,30 +127,9 @@ public class TranslateWizard extends Wizard {
 			//PROMNETPP_HOME environment variable
 			new Composite(container, SWT.NULL) {
 				{
-					setLayout(new GridLayout(3, false));
-					new Label(this, SWT.NULL).setText("PROMNETPP_HOME:");
-					PROMNeTppHomeText = new Text(this, SWT.NULL);
-					PROMNeTppHomeText.setText("C:/Users/Miguel Martins/" +
-							"Documents/NetBeansProjects/promnetpp");
-					Button chooseHomeButton = new Button(this, SWT.PUSH);
-					chooseHomeButton.setText("...");
-					chooseHomeButton.addSelectionListener(new
-							SelectionListener() {
-
-						@Override
-						public void widgetSelected(SelectionEvent e) {
-							DirectoryDialog dialog = new DirectoryDialog(
-									getShell(), SWT.OPEN);
-							String result = dialog.open();
-							if (result != null) {
-								PROMNeTppHomeText.setText(result);
-							}
-						}
-
-						@Override
-						public void widgetDefaultSelected(SelectionEvent e) {
-						}
-					});
+					setLayout(new GridLayout(1, false));
+					new Label(this, SWT.NULL).setText("PROMNETPP_HOME");
+					new PROMNeTppHomeComposite(this, SWT.NULL);
 				}
 			};
 			//Show the user the input file they selected
@@ -189,19 +155,27 @@ public class TranslateWizard extends Wizard {
 			} else if (specifyConfigurationFileButton.getSelection()) {
 				return configurationFileText.getText();
 			} else {
-				System.err.println("No radio button is selected!");
-				return null;
+				throw new RuntimeException("No radio button selected!");
 			}
 		}
 
 		public String getJARFilePath() {
 			return JARFileConfigurationText.getText();
 		}
-		
+
 		public String getPROMNeTppHomeVariable() {
-			return PROMNeTppHomeText.getText();
+			if (sameAsJarButton.getSelection()) {
+				IPath path = new Path(JARFileConfigurationText.getText());
+				path = path.removeLastSegments(1);
+				return path.toPortableString();
+			} else if (otherLocationButton.getSelection()) {
+				return PROMNeTppHomeText.getText();
+			} else {
+				throw new RuntimeException("No radio button selected!");
+			}
 		}
 
+		//Custom composites
 		private class ConfigurationComposite extends Composite {
 
 			public ConfigurationComposite(Composite parent, int style) {
@@ -226,5 +200,42 @@ public class TranslateWizard extends Wizard {
 			}
 
 		}
+
+		private class PROMNeTppHomeComposite extends Composite {
+
+			public PROMNeTppHomeComposite(Composite parent, int style) {
+				super(parent, style);
+				setLayout(new GridLayout(4, false));
+				sameAsJarButton = new Button(this, SWT.RADIO);
+				new Label(this, SWT.NULL).setText("Same as the location of" +
+						" the JAR file.");
+				new Label(this, SWT.NULL);
+				new Label(this, SWT.NULL);
+				otherLocationButton = new Button(this, SWT.RADIO);
+				new Label(this, SWT.NULL).setText("Other (please specify):");
+				PROMNeTppHomeText = new Text(this, SWT.NULL);
+				PROMNeTppHomeText.setText("C:/Users/Miguel Martins/" +
+						"Documents/NetBeansProjects/promnetpp");
+				Button chooseHomeButton = new Button(this, SWT.PUSH);
+				chooseHomeButton.setText("...");
+				chooseHomeButton.addSelectionListener(new SelectionListener() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						DirectoryDialog dialog = new DirectoryDialog(
+								getShell(), SWT.OPEN);
+						String result = dialog.open();
+						if (result != null) {
+							PROMNeTppHomeText.setText(result);
+						}
+					}
+
+					@Override
+					public void widgetDefaultSelected(SelectionEvent e)
+					{
+					}
+				});
+				sameAsJarButton.setSelection(true);
+			}
+		};
 	}
 }
