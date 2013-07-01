@@ -2,5 +2,5 @@
 <promnetppConfiguration>
     <simpleOption name="outputDirectory" value="." />
     <simpleOption name="spinHome" value="C:/spin" />
-    <simpleOption name="skipVerification" value="false" />
+    <simpleOption name="skipVerification" value="true" />
 </promnetppConfiguration>
