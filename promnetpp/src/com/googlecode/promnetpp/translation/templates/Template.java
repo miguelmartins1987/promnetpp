@@ -37,6 +37,8 @@ public abstract class Template {
     protected Map<String, IndentedStringWriter> specificFunctionWriters;
     //Local variable declarations for each type of process
     protected Map<String, IndentedStringWriter> localVariableDeclarations;
+    //Meant for global declarations
+    protected IndentedStringWriter globalDeclarationsWriter;
     
 
     public Template() {
@@ -137,5 +139,10 @@ public abstract class Template {
     
     public void writeNEDFile() throws IOException {
         throw new UnsupportedOperationException("Must be overridden!");
+    }
+
+    public void setGlobalDeclarationsWriter(IndentedStringWriter
+            globalDeclarationsWriter) {
+        this.globalDeclarationsWriter = globalDeclarationsWriter;
     }
 }

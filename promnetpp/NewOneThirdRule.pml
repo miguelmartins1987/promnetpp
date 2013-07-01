@@ -24,6 +24,13 @@ Modifications were done on the specification provided on April 23 2013:
 #define NUMBER_OF_PROCESSES 3
 #define NUMBER_OF_ASYNCHRONOUS_ROUNDS 1
 
+/* Random number generation */
+int random = 1234;
+#define next(r) (r * 16807) % 2147483647
+#define boolean(r) ((r >> 30) & 1)
+
+/* End random number generation */
+
 int round_id = 0;
 
 typedef message {
@@ -95,9 +102,10 @@ inline system_init() {
     j = 1;
     for(i : 0..(NUMBER_OF_PROCESSES-1)) {
         state[i].local_value = j;
+        random = next(random);
         if
-        :: j++
-        :: skip
+        :: boolean(random) -> j++
+        :: else -> skip
         fi
     }
 }
@@ -115,7 +123,9 @@ inline system_every_round() {
         for(j : 0..(NUMBER_OF_PROCESSES-1)) {
             if
             :: state[i].received_message[j] = true
-            :: !synchronous && i != j -> state[i].received_message[j] = false
+            :: !synchronous && i != j ->
+                random = next(random);
+                state[i].received_message[j] = boolean(random)
             fi
         }
     }

@@ -10,7 +10,6 @@
 package com.googlecode.promnetpp.translation;
 
 import com.googlecode.promnetpp.options.Options;
-import com.googlecode.promnetpp.other.StackManager;
 import com.googlecode.promnetpp.other.Utilities;
 import com.googlecode.promnetpp.parsing.ASTNode;
 import com.googlecode.promnetpp.parsing.AbstractSyntaxTree;
@@ -52,7 +51,6 @@ public class StandardTranslator implements Translator {
     //Stacks
     private Stack<Integer> stepStack;
     private Stack<String> templateParameters;
-    StackManager stackManager;
     //Other
     private Map<String, Function> functions;
     private String currentFunction;
@@ -77,7 +75,6 @@ public class StandardTranslator implements Translator {
         processes = new HashMap<String, Process>();
         //Other
         stepStack = new Stack<Integer>();
-        stackManager = new StackManager();
         templateParameters = new Stack<String>();
 
         Logger.getLogger(StandardTranslator.class.getName()).log(Level.INFO,
@@ -112,6 +109,7 @@ public class StandardTranslator implements Translator {
             currentFileContents = MessageFormat.format(currentFileContents,
                     globalDeclarations.toString());
             if (template != null) {
+                template.setGlobalDeclarationsWriter(globalDeclarations);
                 currentFileContents += template.getGlobalDeclarations();
                 currentFileContents += "\n";
             }
