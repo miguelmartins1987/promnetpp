@@ -18,21 +18,25 @@ This Wiki page is to be regarded as a guide to perform a PROMELA to C++ translat
 
 = Steps =
 
-  # Assuming PROMNeT++ has been extracted to a directory of your choice, as per the above prerequisites, you (the user) must, first and foremost, edit the _default-configuration.xml_ file that's packaged with the distribution, by using a text editor. We'll be editing the option named "spinHome", so that PROMNeT++ knows where to find Spin (for verification purposes).
+  # Assuming PROMNeT++ has been extracted to a directory of your choice, as per the above prerequisites, you (the user) must, first and foremost, _edit the default-configuration.xml file that's packaged with the distribution_, by using a text editor. We'll be editing the option named "spinHome", so that PROMNeT++ knows where to find Spin (for verification purposes).
     * There should be a line in the configuration file similar to
 {{{
 <simpleOption name="spinHome" value="C:/spin" />
 }}}
-    * All that's required in this step is to edit the value of the "simpleOption". You need to make sure that it points to the directory where Spin is installed.
-    * *Example #1:* you're using Spin and PROMNeT++ under Windows, and your Spin is installed under _C:/spin_. In this case, no changes are required. If, however, Spin were to be installed under a different directory, say, _C:/some-folder/some-other-folder/spin_, you would edit it so that it looks like this:
+    * The rule of thumb is: *"spinHome" must point to the directory where Spin is installed, and in particular, the Spin executable, regardless of whether said executable was obtained by compiling Spin from source or not.*
+    * If you're using Linux or OS X, for example, it could look something like this:
 {{{
-<simpleOption name="spinHome" value="C:/some-folder/some-other-folder/spin" />
+<simpleOption name="spinHome" value="/Users/yourusername/Spin" />
 }}}
-    * *Example #2:* you're using Spin and PROMNeT++ under Linux or OS X; you have downloaded and extracted the Spin distribution, containing its source code, to some directory, then compiled the Spin executable from said source code, then copied the executable to _/home/myusername/spin_. In this case, you would edit it so that it looks like this:
+    * Furthermore, *it is important that the value does not contain a trailing forward slash ("/")*, which means:
+      * Wrong!
 {{{
-<simpleOption name="spinHome" value="/home/myusername/spin" />
+<simpleOption name="spinHome" value="/Users/yourusername/Spin/" />
 }}}
-    * In any case, the rule of thumb is this: *"spinHome" must point to the directory where Spin is installed, and in particular, the Spin executable, regardless of whether said executable was obtained by compiling Spin from source or not.*
+      * Right!
+{{{
+<simpleOption name="spinHome" value="/Users/yourusername/Spin" />
+}}}
     * Remember to save any changes to the file when done.
   # Once you have completed the above step, you must then choose a directory for both your PROMELA model and your translated files. This can be any directory of your choice, _just as long as you have the adequate permissions to read from and write files to that directory_. We will refer to this directory as the *PROMNeT++ workspace*, or *workspace* for short. For this guide, I am using a folder called "my promnetpp workspace" under my C: drive, in Windows (i.e. C:\my promnetpp workspace).<br><br>https://promnetpp.googlecode.com/svn/media/MyPromnetppWorkspaceEmpty.png
   # Copy your PROMELA model and the _default-configuration.xml_ file that comes with PROMNeT++ to the workspace. We'll be using the _!NewOneThirdRule.pml_ model packaged with the distribution.<br><br>https://promnetpp.googlecode.com/svn/media/MyPromnetppWorkspace.png
