@@ -41,10 +41,19 @@ This Wiki page is to be regarded as a guide to perform a PROMELA to C++ translat
   # Once you have completed the above step, you must then choose a directory for both your PROMELA model and your translated files. This can be any directory of your choice, _just as long as you have the adequate permissions to read from and write files to that directory_. We will refer to this directory as the *PROMNeT++ workspace*, or *workspace* for short. For this guide, I am using a folder called "my promnetpp workspace" under my C: drive, in Windows (i.e. C:\my promnetpp workspace).<br><br>https://promnetpp.googlecode.com/svn/media/MyPromnetppWorkspaceEmpty.png
   # Copy your PROMELA model and the _default-configuration.xml_ file that comes with PROMNeT++ to the workspace. We'll be using the _!NewOneThirdRule.pml_ model packaged with the distribution.<br><br>https://promnetpp.googlecode.com/svn/media/MyPromnetppWorkspace.png
   # Open a command prompt/shell/terminal at the workspace. In Windows Vista and above, this can be easily done by holding down either of the _Shift_ keys and choosing the _Open command window here_ option.
-  # Type in (or copy and paste) the following commands:
+    * You may also do this in Windows XP, but it requires the installation of a _Command Prompt Here_ shortcut/powertoy.
+    * Similar shortcuts exist for Linux and OS X, but under the name _Open terminal here_ instead.
+    * Alternatively, you may open a terminal yourself and manually navigate to the workspace directory via multiple "cd" commands.
+  # Once your current directory is set to your workspace's directory, type in (or copy and paste) the following commands, altering them accordingly when necessary:
+    * For Windows users:
 {{{
 set PROMNETPP_HOME=C:\promnetpp
 java -enableassertions -jar "%PROMNETPP_HOME%\promnetpp.jar" NewOneThirdRule.pml
+}}}
+    * For Linux/OS X users:
+{{{
+export PROMNETPP_HOME=/Users/yourusername/promnetpp
+java -enableassertions -jar $PROMNETPP_HOME/promnetpp.jar NewOneThirdRule.pml
 }}}
   # Wait for the tool to finish its verification/translation procedure.
   # If no errors occurred, you should now be in possession of the generated source code files, as illustrated in the screenshot below.<br><br>https://promnetpp.googlecode.com/svn/media/MyPromnetppWorkspaceFull.png
