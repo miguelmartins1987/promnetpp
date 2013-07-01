@@ -55,6 +55,7 @@ java -enableassertions -jar "%PROMNETPP_HOME%\promnetpp.jar" NewOneThirdRule.pml
 export PROMNETPP_HOME=/Users/yourusername/promnetpp
 java -enableassertions -jar $PROMNETPP_HOME/promnetpp.jar NewOneThirdRule.pml
 }}}
+    * Note that the _-enableassertions_ (or _-ea_) switch _must be present_, as PROMNeT++ uses Java assert statements at several points during execution.
   # Wait for the tool to finish its verification/translation procedure.
   # If no errors occurred, you should now be in possession of the generated source code files, as illustrated in the screenshot below.<br><br>https://promnetpp.googlecode.com/svn/media/MyPromnetppWorkspaceFull.png
 
