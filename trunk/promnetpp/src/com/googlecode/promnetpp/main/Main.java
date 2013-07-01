@@ -41,9 +41,11 @@ public class Main {
 
     static {
         boolean assertsEnabled = false;
-        assert assertsEnabled = true; // Intentional side effect!!!
+        assert assertsEnabled = true; //Intentional side effect
         if (!assertsEnabled) {
-            throw new RuntimeException("Asserts must be enabled!!!");
+            throw new RuntimeException("PROMNeT++ requires assertions to run.\n"
+                    + "Please make sure you invoked PROMNeT++ with the"
+                    + " -enableassertions switch.");
         }
     }
     /**
@@ -92,7 +94,10 @@ public class Main {
             fileNameOrPath = args[0];
             configurationFilePath = args[1];
         } else {
-            System.err.println("Invalid number of command-line arguments!");
+            System.err.println("Invalid number of command-line arguments.");
+            System.err.println("Usage #1: promnetpp.jar <PROMELA model>.pml");
+            System.err.println("Usage #2: promnetpp.jar <PROMELA model>.pml"
+                    + " <configuration file>.xml");
             System.exit(1);
         }
         //We must have a file name or path at this point
@@ -108,7 +113,7 @@ public class Main {
         verifier.doVerification();
         assert verifier.isErrorFree() : "Errors reported during model"
                 + " verification!";
-            verifier.finish();
+        verifier.finish();
         buildAbstractSyntaxTree();
         Translator translator = new StandardTranslator();
         translator.init();

@@ -380,7 +380,20 @@ public class ASTNode extends SimpleNode {
             if (functionName.equals("nempty")) {
                 return "channel->is_not_empty()";
             }
-            return functionName + "()";
+            String function = functionName + "(";
+            if (functionCall.hasSingleChild()) {
+                ASTNode functionParameters = functionCall.getFirstChild();
+                int upper = functionParameters.jjtGetNumChildren();
+                for (int i = 0; i < upper; ++i) {
+                    function += functionParameters.getChild(i)
+                            .toCppExpression();
+                    if (i < upper - 1) {
+                        function += ", ";
+                    }
+                }
+            }
+            function += ")";
+            return function;
         } else if (factorType.equals("variable")) {
             ASTNode variable = factor.getFirstChild();
             return variable.toCppVariableName();

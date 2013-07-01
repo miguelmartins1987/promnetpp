@@ -87,4 +87,18 @@ public class Utilities {
         }
         return functionNames;
     }
+
+    public static String externalizeGlobalDeclarations(String
+            globalDeclarations) {
+        globalDeclarations = globalDeclarations.replaceAll(" =.*", ";");
+        //Add the "extern" keyword to all global declarations
+        globalDeclarations = "extern " + globalDeclarations;
+        globalDeclarations = globalDeclarations.replaceAll("\n", "\nextern ");
+        //Remove the extra "extern " at the end
+        if (globalDeclarations.endsWith("extern ")) {
+            globalDeclarations = globalDeclarations.substring(0,
+                    globalDeclarations.lastIndexOf("extern "));
+        }
+        return globalDeclarations;
+    }
 }

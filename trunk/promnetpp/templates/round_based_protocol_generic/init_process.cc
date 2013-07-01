@@ -2,9 +2,10 @@
 #include "init_process.h"
 #include "utilities.h"
 
-extern process_state state[];
+//Template-specific global variables
 extern byte number_of_processes_in_current_round;
-extern int round_id;
+//Global variables from the PROMELA model
+{0}
 
 void InitProcess::initialize() '{'
     ProcessInterface::initialize();
@@ -57,9 +58,9 @@ void InitProcess::run_processes() '{'
 '}'
 
 void InitProcess::system_every_round() '{'
-{0}
+{1}
 '}'
 
 void InitProcess::system_init() '{'
-{1}
+{2}
 '}'

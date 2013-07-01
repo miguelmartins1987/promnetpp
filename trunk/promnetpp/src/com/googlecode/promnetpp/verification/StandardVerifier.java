@@ -69,6 +69,7 @@ public class StandardVerifier extends Verifier {
                     verificationSkipped = true;
                 } else {
                     compileAndRunPAN();
+                    deletePANFiles();
                 }
             }
         } catch (IOException ex) {
@@ -85,21 +86,6 @@ public class StandardVerifier extends Verifier {
     
     @Override
     public void finish() {
-        List<String> filesToDelete = new ArrayList<String>();
-        filesToDelete.add("pan.b");
-        filesToDelete.add("pan.c");
-        filesToDelete.add("pan.h");
-        filesToDelete.add("pan.m");
-        filesToDelete.add("pan.p");
-        filesToDelete.add("pan.t");
-        //Under Windows, PAN is likely named pan.exe
-        filesToDelete.add("pan.exe");
-        //Under Linux, it should be just pan
-        filesToDelete.add("pan");
-        for (String file : filesToDelete) {
-            deleteFileIfExists(file);
-        }
-        //Notify the user that we're done
         if (verificationSkipped) {
             System.out.print("Verification skipped.");
         } else {
@@ -142,9 +128,15 @@ public class StandardVerifier extends Verifier {
             System.out.println(processBuilder.command());
             Process PAN = processBuilder.start();
             exitValue = PAN.waitFor();
-            System.out.println(getOutputStreamAsString(PAN));
+            String PANOutput = getOutputStreamAsString(PAN);
+            System.out.println(PANOutput);
+            
+            boolean isOutOfMemory = PANOutput.contains("out of memory");
             if (exitValue > 0) {
-                System.err.println("PAN reported one or more errors.");
+                containsErrors = true;
+            } else if (isOutOfMemory) {
+                System.err.println("PAN ran out of memory. Unable to verify"
+                        + " model.");
                 containsErrors = true;
             }
         }
@@ -153,5 +145,22 @@ public class StandardVerifier extends Verifier {
     private void deleteFileIfExists(String fileName) {
         File file = new File(fileName);
         file.delete();
+    }
+
+    private void deletePANFiles() {
+        List<String> filesToDelete = new ArrayList<String>();
+        filesToDelete.add("pan.b");
+        filesToDelete.add("pan.c");
+        filesToDelete.add("pan.h");
+        filesToDelete.add("pan.m");
+        filesToDelete.add("pan.p");
+        filesToDelete.add("pan.t");
+        //Under Windows, PAN is likely named pan.exe
+        filesToDelete.add("pan.exe");
+        //Under Linux, it should be just pan
+        filesToDelete.add("pan");
+        for (String file : filesToDelete) {
+            deleteFileIfExists(file);
+        }
     }
 }

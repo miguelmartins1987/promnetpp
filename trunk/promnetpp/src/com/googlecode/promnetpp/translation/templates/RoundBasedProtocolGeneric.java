@@ -10,6 +10,7 @@
 package com.googlecode.promnetpp.translation.templates;
 
 import com.googlecode.promnetpp.options.Options;
+import com.googlecode.promnetpp.other.Utilities;
 import com.googlecode.promnetpp.parsing.ASTNode;
 import java.io.File;
 import java.io.IOException;
@@ -83,11 +84,15 @@ public class RoundBasedProtocolGeneric extends Template {
                 "compute_message").toString();
         String stateTransitionCode = getSpecificFunctionWriter(
                 "state_transition").toString();
+        String globalDeclarationsFromPROMELAModel = Utilities.
+                externalizeGlobalDeclarations(globalDeclarationsWriter.
+                toString());
         String systemEveryRoundCode = getSpecificFunctionWriter(
                 "system_every_round").toString();
         String systemInitCode = getSpecificFunctionWriter(
                 "system_init").toString();
-        setDynamicFileParameters("init_process.cc", systemEveryRoundCode,
+        setDynamicFileParameters("init_process.cc",
+                globalDeclarationsFromPROMELAModel, systemEveryRoundCode,
                 systemInitCode);
         setDynamicFileParameters("_process.cc", computeMessageCode,
                 stateTransitionCode);
