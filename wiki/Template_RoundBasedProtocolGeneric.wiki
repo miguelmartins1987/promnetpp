@@ -113,3 +113,5 @@ Below is Raul Barbosa's own implementation, that synchronizes processes via toke
 || send_to_all || Process || Sends the process' own message to all processes in the system (including itself, but excluding the init process). ||
 || wait_to_receive || Process || Waits for all messages to be sent, before calling _receive_ next. ||
 || state_transition || Process || Performs the main computation(s) before ending the current round, usually by taking messages from the other processes and comparing them to its own; typically calls receive in a conditional loop; any consensus-related decisions are made in this function too. ||
+|| end_round || Process || Performs all the required actions to declare that a particular round is over. This includes any action required so that all processes can be synchronized before calling _begin_round_ once again. ||
+|| system_every_round || Init process || Executes once before each round. Used to set the system's state for a particular round. ||
