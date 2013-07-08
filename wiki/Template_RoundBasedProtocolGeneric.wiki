@@ -1,0 +1,103 @@
+#summary Template for Round-Based Consensus Protocols.
+#labels Featured
+
+= Basic structure =
+
+{{{
+/*
+ * Copyright (c) <year>, <name of copyright holder>
+ * Use is subject to license terms.
+ *
+ * Note that this comment is ENTIRELY OPTIONAL and is merely here for
+ * the purpose of stating any licensing terms, if applicable.
+ */
+
+/* @UsesTemplate(name="round_based_protocol_generic") */
+/* @TemplateParameter(name="numberOfParticipants") */
+#define N 3
+
+inline compute_message(_message) {
+    /* Code for compute_message */
+}
+
+inline state_transition() {
+    /* Code for state_transition */
+}
+
+inline system_init() {
+    /* Code for system_init */
+}
+
+inline system_every_round() {
+    /* Code for system_every_round */
+}
+
+inline send_to_all(_message) {
+    /* Code for send_to_all */
+}
+
+inline receive(_message, id) {
+    /* Code for receive */
+}
+
+/* @BeginTemplateBlock(name="generic_part") */
+
+/* Everything inside this template block is part of the template's GENERIC PART. */
+
+inline begin_round() {
+    /* Code for begin_round */
+}
+
+inline end_round() {
+    /* Code for end_round*/
+}
+
+inline wait_to_receive() {
+    /* Code for wait_to_receive */
+}
+
+proctype Process() {
+    /* Variable declarations go here. Below is a typical example. */
+    message _message;
+    byte i, j;
+    
+    /* Processes are STRICTLY REQUIRED to call the functions below in the order they're shown: begin_round,
+compute_message, send_to_all, wait_to_receive, state_transition, end_round */
+
+    do
+    :: begin_round();
+        compute_message(_message);
+        send_to_all(_message);
+        wait_to_receive();
+        state_transition();
+        end_round()
+    od	
+}
+
+init {
+    /* Variable declarations go here. Below is a typical example. */
+    byte i, j;
+    bool synchronous = false;
+    
+    /* system_init MUST be init's first called procedure */
+    system_init();
+
+    /* Required, so that the actual processes run */
+    atomic {
+        for(i : 1..(NUMBER_OF_PROCESSES)) {
+            run Process()
+        }
+    }
+
+    /* Required to synchronize processes between rounds.
+Below is Raul Barbosa's own implementation, that synchronizes processes via token passing (byte token;) */
+    do
+    :: (token == 0);
+        system_every_round();
+        token = NUMBER_OF_PROCESSES;
+        (token == 0);
+        token = NUMBER_OF_PROCESSES
+    od
+}
+/* @EndTemplateBlock */
+}}}
