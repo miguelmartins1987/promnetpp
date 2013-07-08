@@ -1,6 +1,10 @@
 #summary Template for Round-Based Consensus Protocols.
 #labels Featured
 
+= Basic template data =
+  * *Name:* round_based_protocol_generic
+  * *Rationale:* Template for Round-Based Consensus Protocols.
+
 = Basic structure =
 
 {{{
@@ -101,3 +105,11 @@ Below is Raul Barbosa's own implementation, that synchronizes processes via toke
 }
 /* @EndTemplateBlock */
 }}}
+
+= Template functions =
+|| *Function name* || *Caller* || *Description* ||
+|| begin_round || Process || Ensures, via synchronization, that all processes are ready to start a new round. ||
+|| compute_message || Process || During each round, each process calls this method to compute (i.e. alter the contents of, whenever necessary) its own message object. ||
+|| send_to_all || Process || Sends the process' own message to all processes in the system (including itself, but excluding the init process). ||
+|| wait_to_receive || Process || Waits for all messages to be sent, before calling _receive_ next. ||
+|| state_transition || Process || Performs the main computation(s) before ending the current round, usually by taking messages from the other processes and comparing them to its own; typically calls receive in a conditional loop; any consensus-related decisions are made in this function too. ||
