@@ -165,6 +165,8 @@ Token arrayCapacity;}
     "]" { jjtThis.putValue("isArray", true); jjtThis.putValue("arrayCapacity",
     arrayCapacity.image); }
     ]
+    /* Is there an assignment besides the declaration? */
+    ["=" Expression() { jjtThis.putValue("hasInitializationValue", true);} ]
 }
 
 void MultiDeclaration() : {String typeName; Token identifier;
