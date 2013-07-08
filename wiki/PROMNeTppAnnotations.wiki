@@ -10,4 +10,13 @@ PROMNeT++, although fully automated, needs some "guidance" from its user, in the
 || *Annotation* || *Parameters and values* || *Required* || *Description and usage notes* || *Example* ||
 || @!UsesTemplate || name (value=String) || Yes || Gives PROMNeT++ the indication to use the C++ code template named _name_. *Must be the very first annotation in your model.* Currently, the only supported template is "round_based_protocol_generic", as PROMNeT++ was designed for Round-Based Consensus Protocols. || @!UsesTemplate(name="round_based_protocol_generic") ||
 || @!TemplateParameter || name (value=String) || Not always || Makes it so that the value of the next _#define_ directive is treated as a parameter for the template. *Must be placed immediately before a #define directive.* Naturally, if no template has been specified (via @!UsesTemplate), this fails. || @!TemplateParameter(name="numberOfParticipants")<br>#define N 3<br><br>The above makes it so that, if using the "round_based_protocol_generic" template, the number of participants is 3.||
-|| blah || blah || blah || blah || blah ||
+|| @!BeginTemplateBlock || name (value=String) || Yes, depending on the template || Signals PROMNeT++ that anything below this annotation is part of a template block. *Must be used in conjunction with @!EndTemplateBlock.* Any code pertaining to a template block is handled/translated differently from regular code. || @!BeginTemplateBlock(name="generic_part") ||
+|| @!EndTemplateBlock || None || Yes, for every @!BeginTemplateBlock || Closes the template block initiated by @!BeginTemplateBlock. *Must be used in conjunction with @!BeginTemplateBlock.* Any code pertaining to a template block is handled/translated differently from regular code. || @!EndTemplateBlock ||
+
+= Templates using these annotations =
+
+As of this guide's time of writing, there's only one template, for Round-Based Consensus Protocols. Developers who re-use PROMNeT++'s code, or use PROMNeT++ as basis for their work, are encouraged to make it so that their tool works on different types of protocols.
+
+== Template list ==
+
+  * <a href="https://code.google.com/p/promnetpp/wiki/Template_RoundBasedProtocolGeneric">"round_based_protocol_generic"</a> (Implementation: !RoundBasedProtocolGeneric.java)
