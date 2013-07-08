@@ -8,4 +8,4 @@ PROMNeT++, although fully automated, needs some "guidance" from its user, in the
 = Annotation list =
 
 || *Annotation* || *Parameters and values* || *Required* || *Description and usage notes* || *Example* ||
-|| @!UsesTemplate || name (value=String) || Yes || Gives PROMNeT++ the indication to use the C++ code template named _name_. *Must be the very first annotation in your model.* Currently, the only supported template is "round_based_protocol_generic", as PROMNeT++ was designed for Round-Based Consensus Protocols || @!UsesTemplate(name="round_based_protocol_generic") ||
+|| @!UsesTemplate || name (value=String) || Yes || Gives PROMNeT++ the indication to use the C++ code template named _name_. *Must be the very first annotation in your model.* Currently, the only supported template is "round_based_protocol_generic", as PROMNeT++ was designed for Round-Based Consensus Protocols. || @!UsesTemplate(name="round_based_protocol_generic") ||
