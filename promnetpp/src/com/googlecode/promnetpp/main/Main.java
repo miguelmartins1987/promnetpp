@@ -25,6 +25,8 @@ import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
 
@@ -56,6 +58,10 @@ public class Main {
      * The name/path to the configuration file
      */
     private static String configurationFilePath;
+    /**
+     * Contents of the PROMELA file, as a string
+     */
+    private static String sourceCode;
     /**
      * The abstract syntax tree
      */
@@ -141,15 +147,17 @@ public class Main {
     }
 
     private static void buildAbstractSyntaxTree() {
-        StringReader reader = null;
+        //Read source code from file
         try {
-            String sourceCode = FileUtils.readFileToString(new File(
-                    fileNameOrPath));
-            reader = new StringReader(sourceCode);
+            sourceCode = FileUtils.readFileToString(new File(fileNameOrPath));
         } catch (IOException ex) {
             System.err.println(ex);
             System.exit(1);
         }
+        //Preprocess the source code, as necessary
+        preprocessSourceCode();
+        //Parse it!
+        StringReader reader = new StringReader(sourceCode);
         PROMELAParser parser = new PROMELAParser(reader);
         try {
             abstractSyntaxTree = new AbstractSyntaxTree(parser.Start());
@@ -157,8 +165,35 @@ public class Main {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE,
                     "Error while parsing the input file!", ex);
             System.err.println(ex);
+            showOffendingLine(ex);
         }
         assert abstractSyntaxTree != null : "Could not build an"
                 + " abstract syntax tree!";
+    }
+
+    private static void preprocessSourceCode() {
+        StringBuilder sourceCodeAsBuilder = new StringBuilder(sourceCode);
+        String commentRegex = "/[*].*?[*]/";
+        Pattern commentPattern = Pattern.compile(commentRegex, Pattern.DOTALL);
+        Matcher commentMatcher = commentPattern.matcher(sourceCodeAsBuilder);
+        while (commentMatcher.find()) {
+            String comment = commentMatcher.group().replace("/*", "")
+                    .replace("*/", "").trim();
+            boolean isAnnotatedComment = comment.startsWith("@");
+            if (!isAnnotatedComment) {
+                //Remove the comment and reset the matcher
+                sourceCodeAsBuilder.delete(commentMatcher.start(),
+                        commentMatcher.end());
+                commentMatcher = commentPattern.matcher(sourceCodeAsBuilder);
+            }
+        }
+        sourceCode = sourceCodeAsBuilder.toString();
+    }
+
+    private static void showOffendingLine(ParseException parseException) {
+        int lineNumber = parseException.currentToken.next.beginLine;
+        String line = sourceCode.split("\n")[lineNumber - 1];
+        System.err.println("Line " + lineNumber + " is:");
+        System.err.println(line);
     }
 }
