@@ -69,8 +69,8 @@ public class StandardVerifier extends Verifier {
                     verificationSkipped = true;
                 } else {
                     compileAndRunPAN();
-                    deletePANFiles();
                 }
+                deletePANFiles();
             }
         } catch (IOException ex) {
             Logger.getLogger(StandardVerifier.class.getName()).log(Level.SEVERE,
