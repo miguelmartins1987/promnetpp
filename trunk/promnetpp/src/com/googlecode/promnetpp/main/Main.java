@@ -86,16 +86,21 @@ public class Main {
         }
         String PROMNeTppHome = System.getenv("PROMNETPP_HOME");
         if (PROMNeTppHome == null) {
-            System.setProperty("promnetpp.home",
-                    System.getProperty("user.dir"));
-        } else {
-            System.setProperty("promnetpp.home", PROMNeTppHome);
+            String userDir = System.getProperty("user.dir");
+            System.err.println("WARNING: PROMNETPP_HOME environment variable"
+                    + " not set.");
+            System.err.println("PROMNeT++ will assume " + userDir + " as"
+                    + " home.");
+            PROMNeTppHome = userDir;
         }
+        System.setProperty("promnetpp.home", PROMNeTppHome);
+        
         Logger.getLogger(Main.class.getName()).log(Level.INFO, "PROMNeT++ home"
                 + " set to {0}", System.getProperty("promnetpp.home"));
         if (args.length == 1) {
             fileNameOrPath = args[0];
-            configurationFilePath = "default-configuration.xml";
+            configurationFilePath = PROMNeTppHome +
+                    "/default-configuration.xml";
         } else if (args.length == 2) {
             fileNameOrPath = args[0];
             configurationFilePath = args[1];
