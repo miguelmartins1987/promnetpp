@@ -9,6 +9,9 @@
  */
 package com.googlecode.promnetpp.eclipseplugin;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
@@ -46,17 +49,29 @@ public class TranslateWizard extends Wizard {
 		messageWindow.open();
 		messageWindow.appendOutputText("Building PROMNeT++'s process...", true);
 		
-		ProcessBuilder processBuilder = new ProcessBuilder("java",
-				"-enableassertions",
-				"-jar", "\"" + page.getJARFilePath() + "\"",
-				"\"" + inputFilePath.toString() + "\"",
-				"\"" + page.getConfigurationFilePath() + "\"");
-
+		List<String> command = new ArrayList<String>();
+		//java -enableassertions -jar <path_to_jar>.jar <input file>
+		command.add("java");
+		command.add("-enableassertions");
+		command.add("-jar");
+		command.add("\"" + page.getJARFilePath() + "\"");
+		command.add("\"" + inputFilePath.toString() + "\"");
+		
+		/*
+		 * We need to add an extra command-line argument if the user chose
+		 * to specify their own configuration file.
+		 */
+		if (!page.isUsingDefaultConfigurationFile()) {
+			command.add("\"" + page.getConfigurationFilePath() + "\"");
+		}
+		
+		ProcessBuilder processBuilder = new ProcessBuilder(command);
 		processBuilder.directory(project.getLocation().toFile());
 		processBuilder.environment().put("PROMNETPP_HOME",
 				page.getPROMNeTppHomeVariable());
 		
 		messageWindow.appendOutputText("Starting PROMNeT++...", true);
+		messageWindow.appendOutputText(command.toString(), true);
 		messageWindow.refresh();
 		messageWindow.startProcess(processBuilder);
 		return true;
@@ -149,14 +164,19 @@ public class TranslateWizard extends Wizard {
 			setControl(container);
 		}
 
-		public String getConfigurationFilePath() {
+
+		public boolean isUsingDefaultConfigurationFile() {
 			if (useDefaultConfigurationButton.getSelection()) {
-				return "default-configuration.xml";
+				return true;
 			} else if (specifyConfigurationFileButton.getSelection()) {
-				return configurationFileText.getText();
-			} else {
-				throw new RuntimeException("No radio button selected!");
+				return false;
 			}
+			throw new RuntimeException("No valid configuration radio button" +
+					" selected.");
+		}
+		
+		public String getConfigurationFilePath() {
+			return configurationFileText.getText();
 		}
 
 		public String getJARFilePath() {
