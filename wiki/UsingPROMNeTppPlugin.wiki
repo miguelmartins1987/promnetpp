@@ -34,3 +34,5 @@ This article constitutes a guide that is meant to provide instructions on using 
     * *Configuration file*
       * *Use default configuration file:* makes it so that PROMNeT++ uses the default-configuration.xml file under `<`PROMNETPP_HOME`>`/default-configuration.xml
       * *Specify manually:* allows the user to use their own, custom configuration file. _Do note, however, that if you choose this option, it is required that you create/copy said custom configuration file to the same project as your PROMELA model._
+  # Once you have adjusted the wizard's settings to your liking, click on the _Finish_ button. You will be presented with a window similar to the one below.<br><br>https://promnetpp.googlecode.com/svn/media/PromnetppPluginMessageWindow.png
+  # The window above refreshes itself continuously to notify you (the user) of any progress that's been made. Once PROMNeT++ is finished (whether it succeeded or failed), the _Close_ button at the bottom may be clicked to close the window.
