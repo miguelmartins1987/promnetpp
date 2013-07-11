@@ -11,6 +11,7 @@ extern int round_id;
 void Process::initialize() '{'
     ProcessInterface::initialize();
     _pid = getIndex() + 1;
+    received_message_count = 0;
 '}'
 
 void Process::handleMessage(cMessage* msg) '{'
@@ -30,7 +31,7 @@ void Process::handleMessage(cMessage* msg) '{'
             '}'
             if (step == 1) '{'
                 compute_message();
-                send_message_to_all_processes();
+                send_to_all();
             '}'
             if (step == 2) '{'
                 state_transition();
@@ -70,8 +71,12 @@ void Process::finish() '{'
 '}'
 
 void Process::enqueue_message(cMessage* msg) '{'
-    received_messages.insert(msg);
-    if (received_messages.length() == NUMBER_OF_PROCESSES) '{'
+    Message* message = check_and_cast<Message*>(msg);
+    Process* sender = check_and_cast<Process*>(message->getSenderModule());
+    int sender_pid = sender->_pid;
+    received_messages[sender_pid - 1] = message;
+    ++received_message_count;
+    if (received_message_count == NUMBER_OF_PROCESSES) '{'
         ++step_map["main"];
         scheduleAt(simTime(), empty_message);
     '}'
@@ -83,15 +88,11 @@ void Process::begin_round() '{'
 '}'
 
 void Process::end_round() '{'
-    //Clear the queue before we move on to the next round
-    while (!received_messages.empty()) '{'
-        Message* message = check_and_cast<Message*>(received_messages.pop());
-        delete message;
-    '}'
+    received_message_count = 0;
     send(finished_message->dup(), "init_gate$o");
 '}'
 
-void Process::send_message_to_all_processes() '{'
+void Process::send_to_all() '{'
     Message* message = new Message();
     message->set_message(_message);
     for (i = 1; i <= NUMBER_OF_PROCESSES; ++i) '{'
@@ -104,8 +105,8 @@ void Process::send_message_to_all_processes() '{'
     delete message;
 '}'
 
-void Process::receive() '{'
-    Message* message = check_and_cast<Message*>(received_messages.pop());
+void Process::receive(byte id) '{'
+    Message* message = received_messages[id];
     _message = message->get_message();
     delete message;
 '}'

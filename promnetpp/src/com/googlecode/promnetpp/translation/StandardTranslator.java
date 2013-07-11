@@ -324,12 +324,9 @@ public class StandardTranslator implements Translator {
             globalDeclarations.write(arrayCapacity);
             globalDeclarations.write("]");
         }
-        if (globalDeclaration.hasMultipleChildren()) {
-            ASTNode assignmentValue = globalDeclaration.getSecondChild();
-            if (assignmentValue.getNodeName().equals("Expression")) {
-                globalDeclarations.write(" = " +
-                        assignmentValue.toCppExpression());
-            }
+        if (simpleDeclaration.hasMultipleChildren()) {
+            ASTNode assignmentValue = simpleDeclaration.getSecondChild();
+            globalDeclarations.write(" = " + assignmentValue.toCppExpression());
         }
         globalDeclarations.write(";\n");
     }

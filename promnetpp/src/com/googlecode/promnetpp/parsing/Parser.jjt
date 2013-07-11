@@ -210,7 +210,7 @@ String TypeName() : {Token identifier;}
 
 void GlobalDeclaration() : {}
 {
-    SimpleDeclaration() [ "=" (Expression() | ChannelInitialization()) ] ";"
+    SimpleDeclaration() [ "=" ChannelInitialization() ] ";"
 }
 
 void ChannelInitialization() : {Token capacity;}
