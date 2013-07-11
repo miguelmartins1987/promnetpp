@@ -22,7 +22,7 @@ Modifications were done on the specification provided on April 23 2013:
 /* @UsesTemplate(name="round_based_protocol_generic") */
 /* @TemplateParameter(name="numberOfParticipants") */
 #define NUMBER_OF_PROCESSES 3
-#define ALPHA 4
+#define NUMBER_OF_ASYNCHRONOUS_ROUNDS 4
 #define R 4
 #define ABORT 0
 
@@ -60,9 +60,6 @@ inline compute_message(_message) {
 }
 
 inline state_transition() {
-    byte round;
-    bool check;
-  
     d_step {
         if
         :: round < (R-1) ->
@@ -133,9 +130,10 @@ inline system_init() {
     j = 1;
     for(i : 0..(NUMBER_OF_PROCESSES-1)) {
         state[i].local_value = j;
+        random = next(random);
         if
-        :: j++
-        :: skip
+        :: boolean(random) -> j++
+        :: else -> skip
         fi;
         state[i].view[i] = true
     }
@@ -146,8 +144,8 @@ inline system_every_round() {
     printf("MSC: new round, id=%d\n", round_id);
 
     if
-    :: a == 0 -> synchronous = true
-    :: else -> a--
+    :: remaining_asynchronous_rounds == 0 -> synchronous = true
+    :: else -> remaining_asynchronous_rounds--
     fi;
 
     for(i : 0..(NUMBER_OF_PROCESSES-1)) {
@@ -195,6 +193,8 @@ inline wait_to_receive() {
 proctype Process() {
     message _message;
     byte i, j;
+    byte round;
+    bool check;
     printf("MSC: P%d has initial value x=%d\n", _pid, my_state.local_value);
     do
     :: begin_round();
@@ -207,7 +207,7 @@ proctype Process() {
 }
 
 init {
-    byte i, j, a = ALPHA;
+    byte i, j, remaining_asynchronous_rounds = NUMBER_OF_ASYNCHRONOUS_ROUNDS;
     bool synchronous = false;
     
     system_init();
