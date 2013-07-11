@@ -385,8 +385,18 @@ public class ASTNode extends SimpleNode {
                 ASTNode functionParameters = functionCall.getFirstChild();
                 int upper = functionParameters.jjtGetNumChildren();
                 for (int i = 0; i < upper; ++i) {
-                    function += functionParameters.getChild(i)
+                    String parameterAsString = functionParameters.getChild(i)
                             .toCppExpression();
+                    /*
+                     * TODO: This is a hack, to suppress message parameters
+                     * from Round-Based Consensus Protocols.
+                     */
+                    boolean mustSuppressParameter = parameterAsString.equals(
+                            "_message");
+                    if (mustSuppressParameter) {
+                        continue;
+                    }
+                    function += parameterAsString;
                     if (i < upper - 1) {
                         function += ", ";
                     }

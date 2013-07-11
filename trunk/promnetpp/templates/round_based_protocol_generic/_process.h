@@ -3,6 +3,7 @@
 
 #include "process_interface.h"
 #include "types.h"
+#include "message_m.h"
 
 class Process : public ProcessInterface '{'
 private:
@@ -13,15 +14,16 @@ private:
     void begin_round();
     void compute_message();
     void end_round();
-    void receive();
-    void send_message_to_all_processes();
+    void receive(byte id);
+    void send_to_all();
     void state_transition();
     //Variables
 {0}
     //Extra functions
     void enqueue_message(cMessage* msg);
     //Extra variables
-    cQueue received_messages;
+    Message* received_messages[NUMBER_OF_PROCESSES];
+    int received_message_count;
 '}';
 
 Define_Module(Process)

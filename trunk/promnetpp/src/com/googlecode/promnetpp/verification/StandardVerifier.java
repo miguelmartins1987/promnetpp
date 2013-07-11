@@ -49,11 +49,13 @@ public class StandardVerifier extends Verifier {
             Process spinProcess = processBuilder.start();
             spinProcess.waitFor();
             String output = getOutputStreamAsString(spinProcess);
+            String error = getErrorStreamAsString(spinProcess);
             /*
              * We'll assume that, if spin -a produces output, then errors
              * occurred (for instance, syntax errors)
              */
             if (output.length() > 0) {
+                System.err.println(error);
                 System.err.println(output);
                 containsErrors = true;
             } else {

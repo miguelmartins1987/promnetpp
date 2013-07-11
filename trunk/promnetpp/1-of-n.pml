@@ -24,15 +24,23 @@ Modifications were done on the specification provided on April 23 2013:
 #define NUMBER_OF_PROCESSES 3
 #define ALPHA 4
 #define R 4
-
 #define ABORT 0
+
+/* Random number generation */
+int random = 1234;
+#define next(r) (r * 16807) % 2147483647
+#define boolean(r) ((r >> 30) & 1)
+
+/* End random number generation */
+
+int round_id = 0;
 
 typedef message {
     byte value;
     bool view[NUMBER_OF_PROCESSES]
 }
 
-typedef p_state {
+typedef process_state {
     bool received_message[NUMBER_OF_PROCESSES];
     bool view[NUMBER_OF_PROCESSES];
     
@@ -40,7 +48,7 @@ typedef p_state {
     byte decision_value;
 }
 
-p_state state[NUMBER_OF_PROCESSES];
+process_state state[NUMBER_OF_PROCESSES];
 
 #define my_state state[_pid-1]
 
@@ -134,7 +142,8 @@ inline system_init() {
 }
 
 inline system_every_round() {
-    printf("MSC: new round\n");
+    round_id++;
+    printf("MSC: new round, id=%d\n", round_id);
 
     if
     :: a == 0 -> synchronous = true
