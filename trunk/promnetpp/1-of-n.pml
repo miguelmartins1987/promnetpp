@@ -13,7 +13,7 @@
 Author: Raul B. Barbosa <rbarbosa@dei.uc.pt>
 Modified by Miguel Martins <marm@student.dei.uc.pt>
 
-Modifications were done on the specification provided on April 23 2013:
+Modifications were done on the specification provided on June 12 2013:
 -More descriptive variable names
 -Indentation of 4 spaces per tab
 -Annotations for PROMNeT++

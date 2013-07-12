@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<promnetppConfiguration>
-    <simpleOption name="outputDirectory" value="output" />
-    <simpleOption name="spinHome" value="C:/spin" />
-    <simpleOption name="skipVerification" value="false" />
-</promnetppConfiguration>
