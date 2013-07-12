@@ -112,9 +112,10 @@ inline state_transition() {
             if
             :: check ->
                 my_state.decision_value = my_state.local_value;
-                printf("MSC: P%d decides %d\n", _pid, my_state.decision_value)
+                printf("MSC: P%d decides %d on round %d\n", _pid,
+                    my_state.decision_value, round_id)
             :: !check ->
-                printf("MSC: P%d decides ABORT\n", _pid)
+                printf("MSC: P%d decides ABORT on round %d\n", _pid, round_id)
             fi
         fi;
         
