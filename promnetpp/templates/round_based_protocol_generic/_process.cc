@@ -90,6 +90,9 @@ void Process::begin_round() '{'
 '}'
 
 void Process::end_round() '{'
+    for (int i = 0; i < NUMBER_OF_PROCESSES; ++i) '{'
+        delete received_messages[i];
+    '}'
     received_message_count = 0;
     send(finished_message->dup(), "init_gate$o");
 '}'
@@ -110,7 +113,6 @@ void Process::send_to_all() '{'
 void Process::receive(byte id) '{'
     Message* message = received_messages[id];
     _message = message->get_message();
-    delete message;
 '}'
 
 //Specific functions
