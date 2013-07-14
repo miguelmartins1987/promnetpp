@@ -12,6 +12,8 @@ package com.googlecode.promnetpp.translation.templates;
 import com.googlecode.promnetpp.options.Options;
 import com.googlecode.promnetpp.other.Utilities;
 import com.googlecode.promnetpp.parsing.ASTNode;
+import com.googlecode.promnetpp.translation.LocalVariableMap;
+import com.googlecode.promnetpp.translation.StandardTranslatorData;
 import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -72,14 +74,23 @@ public class RoundBasedProtocolGeneric extends Template {
 
     @Override
     public void writeDynamicFiles() throws IOException {
+        StandardTranslatorData.localVariables.normalize();
         //Handle header files first
-        String initProcessVariables = getLocalVariableDeclarationWriter("init")
-                .toString();
-        String processVariables = getLocalVariableDeclarationWriter("Process")
-                .toString();
+        String initProcessVariables = StandardTranslatorData.localVariables.
+                getVariablesAsString("init",
+                LocalVariableMap.DECLARATIONS_WITHOUT_INITIALIZERS);
+        String processVariables = StandardTranslatorData.localVariables.
+                getVariablesAsString("Process",
+                LocalVariableMap.DECLARATIONS_WITHOUT_INITIALIZERS);
         setDynamicFileParameters("init_process.h", initProcessVariables);
         setDynamicFileParameters("_process.h", processVariables);
         //Handle .cc files now
+        initProcessVariables = StandardTranslatorData.localVariables.
+                getVariablesAsString("init",
+                LocalVariableMap.DECLARATIONS_WITHOUT_TYPE_NAMES);
+        processVariables = StandardTranslatorData.localVariables.
+                getVariablesAsString("Process",
+                LocalVariableMap.DECLARATIONS_WITHOUT_TYPE_NAMES);
         String computeMessageCode = getSpecificFunctionWriter(
                 "compute_message").toString();
         String stateTransitionCode = getSpecificFunctionWriter(
@@ -92,10 +103,10 @@ public class RoundBasedProtocolGeneric extends Template {
         String systemInitCode = getSpecificFunctionWriter(
                 "system_init").toString();
         setDynamicFileParameters("init_process.cc",
-                globalDeclarationsFromPROMELAModel, systemEveryRoundCode,
-                systemInitCode);
-        setDynamicFileParameters("_process.cc", computeMessageCode,
-                stateTransitionCode);
+                globalDeclarationsFromPROMELAModel, initProcessVariables,
+                systemEveryRoundCode, systemInitCode);
+        setDynamicFileParameters("_process.cc", processVariables,
+                computeMessageCode, stateTransitionCode);
         super.writeDynamicFiles();
     }
 

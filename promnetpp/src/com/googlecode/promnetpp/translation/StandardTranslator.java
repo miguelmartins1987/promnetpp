@@ -84,6 +84,7 @@ public class StandardTranslator implements Translator {
 
     @Override
     public void finish() {
+        System.out.println(StandardTranslatorData.localVariables);
         String currentFileContents;
         try {
             //Write type definitions
@@ -223,8 +224,9 @@ public class StandardTranslator implements Translator {
                         }
                         List<ASTNode> localVariableDeclarations =
                                 currentChild.getLocalVariableDeclarations();
-                        writeLocalVariableDeclarations(processName,
+                        storeLocalVariableDeclarations(processName,
                                 localVariableDeclarations);
+                        //writeLocalVariableDeclarations(processName, localVariableDeclarations);
                     }
                 }
             }
@@ -699,48 +701,30 @@ public class StandardTranslator implements Translator {
         }
     }
 
-    private void writeLocalVariableDeclarations(String processName,
-            List<ASTNode> localVariableDeclarations) throws IOException {
-        IndentedStringWriter writer =
-                template.getLocalVariableDeclarationWriter(processName);
-        writer.indent();
-        for (int i = 0; i < localVariableDeclarations.size(); ++i) {
-            ASTNode declaration = localVariableDeclarations.get(i);
+    private void storeLocalVariableDeclarations(String processName,
+            List<ASTNode> localVariableDeclarations) {
+        for (ASTNode declaration : localVariableDeclarations) {
             if (declaration.getNodeName().equals("SimpleDeclaration")) {
-                translateSimpleDeclaration(declaration, writer);
+                String typeName = declaration.getTypeName();
+                String variableName = declaration.getName();
+                StandardTranslatorData.localVariables.putVariable(processName,
+                        typeName + " " + variableName);
             } else if (declaration.getNodeName().equals("MultiDeclaration")) {
-                translateMultiDeclaration(declaration, writer);
+                String typeName = declaration.getTypeName();
+                List<String> variableNames = (List<String>) declaration.getValue("names");
+                List<Integer> initializationValues = (List<Integer>) declaration.getValue("initializationValues");
+                int k = 1;
+                for (int i = 0; i < variableNames.size(); ++i) {
+                    String variable = variableNames.get(i);
+                    if (initializationValues.contains(i)) {
+                        ASTNode expression = declaration.getChild(k);
+                        variable += " = " + expression.toCppExpression();
+                        ++k;
+                    }
+                    StandardTranslatorData.localVariables.putVariable(processName,
+                            typeName + " " + variable);
+                }
             }
-        }
-    }
-
-    private void translateSimpleDeclaration(ASTNode declaration,
-            IndentedStringWriter writer) throws IOException {
-        String typeName = declaration.getTypeName();
-        if (typeName.equals("message")) {
-            typeName += "_t";
-        }
-        String variableName = declaration.getName();
-        String code = typeName + " " + variableName;
-        code += ";\n";
-        writer.write(code);
-    }
-
-    private void translateMultiDeclaration(ASTNode declaration,
-            IndentedStringWriter writer) throws IOException {
-        String typeName = declaration.getTypeName();
-        List<String> variableNames = (List<String>) declaration.getValue("names");
-        List<Integer> initializationValues = (List<Integer>) declaration.getValue("initializationValues");
-        int k = 1;
-        for (int i = 0; i < variableNames.size(); ++i) {
-            String code = typeName + " " + variableNames.get(i);
-            if (initializationValues.contains(i)) {
-                ASTNode expression = declaration.getChild(k);
-                code += " = " + expression.toCppExpression();
-                ++k;
-            }
-            code += ";\n";
-            writer.write(code);
         }
     }
 }

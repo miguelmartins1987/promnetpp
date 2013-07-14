@@ -143,6 +143,7 @@ inline system_init() {
 inline system_every_round() {
     round_id++;
     printf("MSC: new round, id=%d\n", round_id);
+    printf("random=%d\n", random);
 
     if
     :: remaining_asynchronous_rounds == 0 -> synchronous = true
@@ -152,11 +153,29 @@ inline system_every_round() {
     for(i : 0..(NUMBER_OF_PROCESSES-1)) {
         for(j : 0..(NUMBER_OF_PROCESSES-1)) {
             if
-            :: state[i].received_message[j] = true
-            :: !synchronous && i != j ->
-                random = next(random);
-                state[i].received_message[j] = boolean(random)
+            :: synchronous -> state[i].received_message[j] = true
+            :: else ->
+                if
+                :: i != j ->
+                    random = next(random);
+                    state[i].received_message[j] = boolean(random)
+                :: else -> state[i].received_message[j] = true
+                fi
             fi
+        }
+    }
+    /* Print arrays */
+    for(i : 0..(NUMBER_OF_PROCESSES-1)) {
+        for(j : 0..(NUMBER_OF_PROCESSES-1)) {
+            printf("state[%d].received_message[%d]=%d\n", i, j,
+                state[i].received_message[j]);
+        }
+    }
+    printf("---------------------------------------------------------------\n");
+    for(i : 0..(NUMBER_OF_PROCESSES-1)) {
+        for(j : 0..(NUMBER_OF_PROCESSES-1)) {
+            printf("state[%d].view[%d]=%d\n", i, j,
+                state[i].view[j]);
         }
     }
 }
