@@ -12,7 +12,7 @@ void InitProcess::initialize() '{'
     _pid = 0;
     //Variable initialization
 {1}
-    memset(state, 0, sizeof(process_state) * NUMBER_OF_PROCESSES);
+    memset(state, 0, sizeof(state));
     //Do the actual work
     system_init();
     run_processes();

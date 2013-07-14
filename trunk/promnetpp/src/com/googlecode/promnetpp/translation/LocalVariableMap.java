@@ -55,7 +55,8 @@ public class LocalVariableMap extends HashMap<String, ArrayList<String>> {
     }
 
     private void removeInitializers(String processName) {
-        ArrayList<String> declarations = this.get(processName);
+        ArrayList<String> declarations = (ArrayList<String>)
+                this.get(processName).clone();
         for (int i = 0; i < declarations.size(); ++i) {
             String variable = declarations.get(i);
             boolean containsAssignment = variable.contains("=");
@@ -64,6 +65,7 @@ public class LocalVariableMap extends HashMap<String, ArrayList<String>> {
             }
             declarations.set(i, variable);
         }
+        this.put(processName, declarations);
     }
 
     private void addInitializers(String processName) {
