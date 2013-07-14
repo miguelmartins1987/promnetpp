@@ -10,6 +10,8 @@ extern byte number_of_processes_in_current_round;
 void InitProcess::initialize() '{'
     ProcessInterface::initialize();
     _pid = 0;
+    //Variable initialization
+{1}
     memset(state, 0, sizeof(process_state) * NUMBER_OF_PROCESSES);
     //Do the actual work
     system_init();
@@ -58,9 +60,9 @@ void InitProcess::run_processes() '{'
 '}'
 
 void InitProcess::system_every_round() '{'
-{1}
+{2}
 '}'
 
 void InitProcess::system_init() '{'
-{2}
+{3}
 '}'

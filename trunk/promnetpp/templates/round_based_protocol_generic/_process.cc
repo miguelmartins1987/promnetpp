@@ -12,6 +12,8 @@ void Process::initialize() '{'
     ProcessInterface::initialize();
     _pid = getIndex() + 1;
     received_message_count = 0;
+    //Variable initialization
+{0}
 '}'
 
 void Process::handleMessage(cMessage* msg) '{'
@@ -113,9 +115,9 @@ void Process::receive(byte id) '{'
 
 //Specific functions
 void Process::compute_message() '{'
-{0}
+{1}
 '}'
 
 void Process::state_transition() '{'
-{1}
+{2}
 '}'
