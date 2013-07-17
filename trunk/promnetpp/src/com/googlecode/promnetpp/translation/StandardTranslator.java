@@ -599,11 +599,6 @@ public class StandardTranslator implements Translator {
         translateTypeAForLoop(forLoop, writer);
     }
 
-    private void writeStepIncrement(IndentedStringWriter writer)
-            throws IOException {
-        writer.write("++step;\n");
-    }
-
     private String[] parseDirectiveParameters(String directive) {
         int first = directive.indexOf("(");
         int last = directive.indexOf(")");
@@ -685,6 +680,9 @@ public class StandardTranslator implements Translator {
             if (guardConditionType.equals("Expression")) {
                 code = MessageFormat.format("if ({0}) '{'\n",
                         guardCondition.toCppExpression());
+                if (i > 0) {
+                    code = "else " + code;
+                }
                 writer.write(code);
                 writer.indent();
             } else {
