@@ -164,20 +164,6 @@ inline system_every_round() {
             fi
         }
     }
-    /* Print arrays */
-    for(i : 0..(NUMBER_OF_PROCESSES-1)) {
-        for(j : 0..(NUMBER_OF_PROCESSES-1)) {
-            printf("state[%d].received_message[%d]=%d\n", i, j,
-                state[i].received_message[j]);
-        }
-    }
-    printf("---------------------------------------------------------------\n");
-    for(i : 0..(NUMBER_OF_PROCESSES-1)) {
-        for(j : 0..(NUMBER_OF_PROCESSES-1)) {
-            printf("state[%d].view[%d]=%d\n", i, j,
-                state[i].view[j]);
-        }
-    }
 }
 
 inline send_to_all(_message) {
