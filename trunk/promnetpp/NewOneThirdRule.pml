@@ -113,6 +113,7 @@ inline system_init() {
 inline system_every_round() {
     round_id++;
     printf("MSC: new round, id=%d\n", round_id);
+    printf("random=%d\n", random);
 
     if
     :: remaining_asynchronous_rounds == 0 -> synchronous = true
@@ -122,8 +123,8 @@ inline system_every_round() {
     for(i : 0..(NUMBER_OF_PROCESSES-1)) {
         for(j : 0..(NUMBER_OF_PROCESSES-1)) {
             if
-            :: state[i].received_message[j] = true
-            :: !synchronous && i != j ->
+            :: synchronous || i == j -> state[i].received_message[j] = true
+            :: else ->
                 random = next(random);
                 state[i].received_message[j] = boolean(random)
             fi
