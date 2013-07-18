@@ -9,11 +9,12 @@
  */
 package com.googlecode.promnetpp.research.main;
 
+import com.googlecode.promnetpp.research.data.GeneralData;
 import com.googlecode.promnetpp.research.data.Protocol;
 import com.googlecode.promnetpp.research.data.PANOptions;
+import com.googlecode.promnetpp.research.other.Utilities;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -26,16 +27,8 @@ import org.apache.commons.io.FileUtils;
  *
  * @author Miguel Martins
  */
-public class Main {
-
-    private static final int[] seeds = {1234, 71337, 749464, -252392, -355723,
-        960103, 905902, 634195, -807626, 458852, -438956, 521259, -231442,
-        615387, 392039, -456988, 144748, 685910, 115335, -481879, -145600,
-        -20244, 569789, 980987, 916986, 560451, 868386, 568700, -165345,
-        -47588};
+public class CoverageMain {
     private static String sourceCode;
-    private static String spinHome = "C:/spin";
-    private static String[] fileNames = {"NewOneThirdRule.pml", "1-of-n.pml"};
     private static String fileName;
     private static File CSVFile = new File("results.csv");
 
@@ -44,20 +37,20 @@ public class Main {
      */
     public static void main(String[] args) {
         try {
-            System.out.println(seeds.length + " seeds available.");
+            System.out.println(GeneralData.seeds.length + " seeds available.");
             prepareCSVFile();
-            for (String _fileName : fileNames) {
+            for (String _fileName : GeneralData.fileNames) {
                 fileName = _fileName;
                 sourceCode = FileUtils.readFileToString(new File(fileName));
                 System.out.println("Running seeds for file " + fileName);
-                for (int seed : seeds) {
+                for (int seed : GeneralData.seeds) {
                     doSeedRun(seed);
                 }
             }
         } catch (IOException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(CoverageMain.class.getName()).log(Level.SEVERE, null, ex);
         } catch (InterruptedException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(CoverageMain.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             cleanup();
         }
@@ -74,7 +67,7 @@ public class Main {
         FileUtils.writeStringToFile(new File("temp.pml"), sourceCodeWithSeed);
         //Run Spin first
         List<String> spinCommand = new ArrayList<String>();
-        spinCommand.add(spinHome + "/spin");
+        spinCommand.add(GeneralData.spinHome + "/spin");
         spinCommand.add("-a");
         spinCommand.add("temp.pml");
         ProcessBuilder processBuilder = new ProcessBuilder(spinCommand);
@@ -103,20 +96,11 @@ public class Main {
         processBuilder = new ProcessBuilder(runPANCommand);
         process = processBuilder.start();
         process.waitFor();
-        String PANOutput = getStreamAsString(process.getInputStream());
+        String PANOutput = Utilities.getStreamAsString(process.getInputStream());
         if (PANOutputContainsErrors(PANOutput)) {
             throw new RuntimeException("PAN reported errors.");
         }
         processPANOutput(PANOutput);
-    }
-
-    private static String getStreamAsString(InputStream stream) throws IOException {
-        String output = "";
-        byte[] buffer = new byte[4096];
-        while (stream.read(buffer) > 0) {
-            output = output + new String(buffer);
-        }
-        return output;
     }
 
     private static void processPANOutput(String output) throws IOException {
