@@ -1,0 +1,190 @@
+"File name","Output","Unreachable lines"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:107, state 7, ""j = (j+1)""
+	temp.pml:194, state 69, ""-end-""
+	(2 of 69 states)","173,107,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:108, state 9, ""(1)""
+	temp.pml:194, state 69, ""-end-""
+	(2 of 69 states)","173,108,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:194, state 69, ""-end-""
+	(1 of 69 states)","173,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:194, state 69, ""-end-""
+	(1 of 69 states)","173,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:194, state 69, ""-end-""
+	(1 of 69 states)","173,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:108, state 9, ""(1)""
+	temp.pml:194, state 69, ""-end-""
+	(2 of 69 states)","173,108,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:107, state 7, ""j = (j+1)""
+	temp.pml:194, state 69, ""-end-""
+	(2 of 69 states)","173,107,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:194, state 69, ""-end-""
+	(1 of 69 states)","173,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:194, state 69, ""-end-""
+	(1 of 69 states)","173,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:194, state 69, ""-end-""
+	(1 of 69 states)","173,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:108, state 9, ""(1)""
+	temp.pml:194, state 69, ""-end-""
+	(2 of 69 states)","173,108,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:194, state 69, ""-end-""
+	(1 of 69 states)","173,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:194, state 69, ""-end-""
+	(1 of 69 states)","173,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:194, state 69, ""-end-""
+	(1 of 69 states)","173,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:194, state 69, ""-end-""
+	(1 of 69 states)","173,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:194, state 69, ""-end-""
+	(1 of 69 states)","173,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:194, state 69, ""-end-""
+	(1 of 69 states)","173,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:194, state 69, ""-end-""
+	(1 of 69 states)","173,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:108, state 9, ""(1)""
+	temp.pml:194, state 69, ""-end-""
+	(2 of 69 states)","173,108,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:194, state 69, ""-end-""
+	(1 of 69 states)","173,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:194, state 69, ""-end-""
+	(1 of 69 states)","173,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:194, state 69, ""-end-""
+	(1 of 69 states)","173,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:194, state 69, ""-end-""
+	(1 of 69 states)","173,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:108, state 9, ""(1)""
+	temp.pml:194, state 69, ""-end-""
+	(2 of 69 states)","173,108,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:194, state 69, ""-end-""
+	(1 of 69 states)","173,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:107, state 7, ""j = (j+1)""
+	temp.pml:194, state 69, ""-end-""
+	(2 of 69 states)","173,107,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:194, state 69, ""-end-""
+	(1 of 69 states)","173,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:194, state 69, ""-end-""
+	(1 of 69 states)","173,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:108, state 9, ""(1)""
+	temp.pml:194, state 69, ""-end-""
+	(2 of 69 states)","173,108,194"
+NewOneThirdRule.pml,"unreached in proctype Process
+	temp.pml:173, state 80, ""-end-""
+	(1 of 80 states)
+unreached in init
+	temp.pml:194, state 69, ""-end-""
+	(1 of 69 states)","173,194"
