@@ -31,6 +31,7 @@ public class CoverageMain {
     private static String sourceCode;
     private static String fileName;
     private static File CSVFile = new File("results.csv");
+    private static int currentSeed;
 
     /**
      * @param args the command line arguments
@@ -57,6 +58,7 @@ public class CoverageMain {
     }
 
     private static void doSeedRun(int seed) throws IOException, InterruptedException {
+        currentSeed = seed;
         System.out.println("Running with seed " + seed);
         String pattern = "int random = <INSERT_SEED_HERE>;";
         int start = sourceCode.indexOf(pattern);
@@ -73,8 +75,6 @@ public class CoverageMain {
         ProcessBuilder processBuilder = new ProcessBuilder(spinCommand);
         Process process = processBuilder.start();
         process.waitFor();
-        //System.out.println(getStreamAsString(process.getInputStream()));
-        //System.err.println(getStreamAsString(process.getErrorStream()));
         //Compile PAN next
         List<String> compilePANCommand = new ArrayList<String>();
         compilePANCommand.add("gcc");
@@ -84,8 +84,6 @@ public class CoverageMain {
         processBuilder = new ProcessBuilder(compilePANCommand);
         process = processBuilder.start();
         process.waitFor();
-        //System.out.println(getStreamAsString(process.getInputStream()));
-        //System.err.println(getStreamAsString(process.getErrorStream()));
         //Finally, run PAN
         List<String> runPANCommand = new ArrayList<String>();
         runPANCommand.add("./pan");
@@ -107,8 +105,11 @@ public class CoverageMain {
         //Have a truncated version of the output
         int start = output.indexOf("unreached in");
         if (start == -1) {
-            FileUtils.writeStringToFile(CSVFile, fileName + ",\"none\","
-                    + "\"none\",\"none\"\n", true);
+            FileUtils.writeStringToFile(CSVFile, fileName + ","
+                    + "\"none\","
+                    + "\"none\","
+                    + "\"none\","
+                    + "\"none\"\n", true);
         } else {
             String partialOutput = output.substring(start);
             String endPattern = "states)";
@@ -129,11 +130,12 @@ public class CoverageMain {
             lineNumbers = lineNumbers.substring(0, lineNumbers.length() - 1);
             String relevantLineNumbers = Protocol.excludeIrrelevantLineNumbers(
                     fileName, lineNumbers);
-            FileUtils.writeStringToFile(CSVFile, fileName
-                    + ",\"" + partialOutput.replace("\"", "\"\"") + "\""
-                    + ",\"" + lineNumbers + "\""
-                    + ",\"" + relevantLineNumbers + "\""
-                    + "\n", true);
+            FileUtils.writeStringToFile(CSVFile, fileName + ","
+                    + Integer.toString(currentSeed) + ","
+                    + "\"" + partialOutput.replace("\"", "\"\"") + "\","
+                    + "\"" + lineNumbers + "\","
+                    + "\"" + relevantLineNumbers + "\"\n"
+                    , true);
         }
 
     }
@@ -143,9 +145,11 @@ public class CoverageMain {
             CSVFile.delete();
         }
         CSVFile.createNewFile();
-        FileUtils.writeStringToFile(CSVFile, "\"File name\",\"Output\","
-                + "\"Unreachable lines\",\"Unreachable lines (excluding irrelevant)\""
-                + "\n");
+        FileUtils.writeStringToFile(CSVFile, "\"File name\","
+                + "\"Seed\","
+                + "\"Output\","
+                + "\"Unreachable lines\","
+                + "\"Unreachable lines (excluding irrelevant)\"\n");
     }
 
     private static void cleanup() {
