@@ -166,20 +166,6 @@ inline system_every_round() {
     }
 }
 
-inline send_to_all(_message) {
-    messages[_pid-1].value = _message.value;
-    for(j : 0..(NUMBER_OF_PROCESSES-1)) {
-        messages[_pid-1].view[j] = _message.view[j]
-    }
-}
-
-inline receive(_message, id) {
-    _message.value = messages[id].value;
-    for(j : 0..(NUMBER_OF_PROCESSES-1)) {
-        _message.view[j] = messages[id].view[j]
-    }
-}
-
 /* @BeginTemplateBlock(name="generic_part") */
 message messages[NUMBER_OF_PROCESSES];
 
@@ -193,9 +179,24 @@ inline end_round() {
     token--
 }
 
+
+inline send_to_all(_message) {
+    messages[_pid-1].value = _message.value;
+    for(j : 0..(NUMBER_OF_PROCESSES-1)) {
+        messages[_pid-1].view[j] = _message.view[j]
+    }
+}
+
 inline wait_to_receive() {
     token--;
     (token == _pid)
+}
+
+inline receive(_message, id) {
+    _message.value = messages[id].value;
+    for(j : 0..(NUMBER_OF_PROCESSES-1)) {
+        _message.view[j] = messages[id].view[j]
+    }
 }
 
 proctype Process() {
