@@ -17,6 +17,18 @@ import java.io.InputStream;
  * @author Miguel Martins
  */
 public class Utilities {
+    public static final String operatingSystemType;
+    
+    static {
+        String osName = System.getProperty("os.name").toLowerCase();
+        if (osName.indexOf("win") >= 0) {
+            operatingSystemType = "windows";
+        } else if (osName.indexOf("mac") >= 0) {
+            operatingSystemType = "mac";
+        } else {
+            operatingSystemType = "linux";
+        }
+    }
 
     public static String getStreamAsString(InputStream stream) throws IOException {
         String output = "";

@@ -83,15 +83,37 @@ public class CompareOutputMain {
         process = processBuilder.start();
         process.waitFor();
         //Run opp_makemake
+        FileUtils.copyFileToDirectory(new File("opp_makemake.bat"), folder);
         List<String> makemakeCommand = new ArrayList<String>();
-        makemakeCommand.add("cmd");
-        makemakeCommand.add("/c");
-        makemakeCommand.add(GeneralData.OMNeTppHome + "/bin/opp_makemake.cmd");
+        if (Utilities.operatingSystemType.equals("windows")) {
+            makemakeCommand.add("cmd");
+            makemakeCommand.add("/c");
+            makemakeCommand.add("opp_makemake.bat");
+        } else {
+            throw new RuntimeException("Support for Linux/OS X not implemented"
+                    + " here yet.");
+        }
         processBuilder = new ProcessBuilder(makemakeCommand);
         processBuilder.directory(folder);
         process = processBuilder.start();
         process.waitFor();
-        System.err.println(Utilities.getStreamAsString(process.getErrorStream()));
+        //Run make
+        FileUtils.copyFileToDirectory(new File("opp_make.bat"), folder);
+        List<String> makeCommand = new ArrayList<String>();
+        if (Utilities.operatingSystemType.equals("windows")) {
+            makeCommand.add("cmd");
+            makeCommand.add("/c");
+            makeCommand.add("opp_make.bat");
+        } else {
+            throw new RuntimeException("Support for Linux/OS X not implemented"
+                    + " here yet.");
+        }
+        processBuilder = new ProcessBuilder(makeCommand);
+        processBuilder.directory(folder);
+        process = processBuilder.start();
+        process.waitFor();
+        System.out.println(Utilities.getStreamAsString(
+                process.getInputStream()));
         System.exit(1);
     }
 }
