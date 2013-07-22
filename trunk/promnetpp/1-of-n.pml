@@ -153,14 +153,10 @@ inline system_every_round() {
     for(i : 0..(NUMBER_OF_PROCESSES-1)) {
         for(j : 0..(NUMBER_OF_PROCESSES-1)) {
             if
-            :: synchronous -> state[i].received_message[j] = true
+            :: synchronous || i == j -> state[i].received_message[j] = true
             :: else ->
-                if
-                :: i != j ->
-                    random = next(random);
-                    state[i].received_message[j] = boolean(random)
-                :: else -> state[i].received_message[j] = true
-                fi
+                random = next(random);
+                state[i].received_message[j] = boolean(random)
             fi
         }
     }
