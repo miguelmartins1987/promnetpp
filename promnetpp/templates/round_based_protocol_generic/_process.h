@@ -10,19 +10,19 @@ private:
     virtual void initialize();
     virtual void handleMessage(cMessage* msg);
     virtual void finish();
-    //Functions
+    //Generic functions
     void begin_round();
-    void compute_message();
     void end_round();
-    void receive(byte id);
-    void send_to_all();
-    void state_transition();
-    //Variables
+    void send_to_all(message_t& msg);
+    void receive(message_t& msg, byte id);
+    //Specific functions
 {0}
+    //Variables
+{1}
     //Extra functions
     void enqueue_message(cMessage* msg);
     //Extra variables
-    Message* received_messages[NUMBER_OF_PROCESSES];
+    Message* received_messages[{2}];
     int received_message_count;
 '}';
 

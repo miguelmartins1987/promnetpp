@@ -33,6 +33,7 @@ public abstract class Template {
     protected List<String> dynamicFileNames;
     protected Map<String, String> dynamicFileContents;
     protected String currentBlock;
+    protected List<String> usedBlocks;
     //Meant for specific functions
     protected Map<String, IndentedStringWriter> specificFunctionWriters;
     //Local variable declarations for each type of process
@@ -46,6 +47,8 @@ public abstract class Template {
         dynamicFileNames = new ArrayList<String>();
         dynamicFileContents = new HashMap<String, String>();
         currentBlock = "main";
+        usedBlocks = new ArrayList<String>();
+        usedBlocks.add(currentBlock);
         
         specificFunctionWriters = new HashMap<String, IndentedStringWriter>();
         localVariableDeclarations = new HashMap<String, IndentedStringWriter>();
@@ -102,6 +105,7 @@ public abstract class Template {
 
     public void setCurrentBlock(String blockName) {
         currentBlock = blockName;
+        usedBlocks.add(blockName);
     }
     
     public IndentedStringWriter getSpecificFunctionWriter(String functionName) {
@@ -144,5 +148,9 @@ public abstract class Template {
     public void setGlobalDeclarationsWriter(IndentedStringWriter
             globalDeclarationsWriter) {
         this.globalDeclarationsWriter = globalDeclarationsWriter;
+    }
+
+    public void checkForErrors() {
+        throw new UnsupportedOperationException("Must be overridden!");
     }
 }

@@ -9,7 +9,7 @@
  */
 package com.googlecode.promnetpp.parsing;
 
-import java.util.AbstractList;
+import com.googlecode.promnetpp.translation.StandardTranslatorData;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -323,6 +323,12 @@ public class ASTNode extends SimpleNode {
 
     private String getExpressionAsString(ASTNode expression) {
         assert expression.getNodeName().equals("Expression");
+        boolean isUnaryExpression = expression.getValueAsBoolean(""
+                + "isUnaryExpression");
+        if (isUnaryExpression) {
+            return getUnaryExpressionAsString(expression.getFirstChild());
+        }
+        
         ASTNode firstTerm = expression.getFirstChild();
         String result = getTermAsString(firstTerm);
         List<String> operators = (List<String>)
@@ -387,15 +393,6 @@ public class ASTNode extends SimpleNode {
                 for (int i = 0; i < upper; ++i) {
                     String parameterAsString = functionParameters.getChild(i)
                             .toCppExpression();
-                    /*
-                     * TODO: This is a hack, to suppress message parameters
-                     * from Round-Based Consensus Protocols.
-                     */
-                    boolean mustSuppressParameter = parameterAsString.equals(
-                            "_message");
-                    if (mustSuppressParameter) {
-                        continue;
-                    }
                     function += parameterAsString;
                     if (i < upper - 1) {
                         function += ", ";
@@ -569,5 +566,11 @@ public class ASTNode extends SimpleNode {
             }
         }
         return declarations;
+    }
+
+    private String getUnaryExpressionAsString(ASTNode unaryExpression) {
+        String unaryOperator = unaryExpression.getValueAsString("unaryOperator");
+        ASTNode term = unaryExpression.getFirstChild();
+        return unaryOperator + getTermAsString(term);
     }
 }
