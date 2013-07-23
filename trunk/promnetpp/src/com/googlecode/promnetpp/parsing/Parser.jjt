@@ -343,8 +343,9 @@ void Variable() : {Token identifier; boolean isArray = false;}
 
 void Expression() : {List<String> operators = new ArrayList<String>();}
 {
-    Term() (
-        "+" Term() {operators.add("+");}
+    UnaryExpression()
+    |
+    (Term() ("+" Term() {operators.add("+");}
         | "-" Term() {operators.add("-");}
         /* Comparative */
         | ">" Term() {operators.add(">");}
@@ -356,10 +357,13 @@ void Expression() : {List<String> operators = new ArrayList<String>();}
         /* Logical */
         | "&&" Term() {operators.add("&&");}
         | "||" Term() {operators.add("||");}
-    )*
-    {
-        jjtThis.putValue("operators", operators);
-    }
+    )* {jjtThis.putValue("operators", operators);} )
+}
+
+void UnaryExpression() : {}
+{
+    "+" Term()
+    | "-" Term()
 }
 
 void Term() : {List<String> operators = new ArrayList<String>();}
