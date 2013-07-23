@@ -25,7 +25,8 @@ import org.apache.commons.io.FileUtils;
  */
 public class RoundBasedProtocolGeneric extends Template {
 
-    private int numberOfParticipants;
+    private int numberOfParticipants = -1;
+    private String numberOfParticipantsName;
 
     public RoundBasedProtocolGeneric() {
         super();
@@ -45,7 +46,7 @@ public class RoundBasedProtocolGeneric extends Template {
         System.out.println("Round-based protocol will have "
                 + numberOfParticipants + " participants.");
     }
-
+    
     public boolean inGenericPartBlock() {
         return currentBlock.equalsIgnoreCase("generic_part");
     }
@@ -65,8 +66,9 @@ public class RoundBasedProtocolGeneric extends Template {
         directiveAsString = directiveAsString.substring("#define".length())
                 .trim();
         if (parameterName.equalsIgnoreCase("numberOfParticipants")) {
-            numberOfParticipants = Integer.parseInt(directiveAsString.split(" ")
-                    [1]);
+            String[] components = directiveAsString.split(" ");
+            numberOfParticipantsName = components[0];
+            numberOfParticipants = Integer.parseInt(components[1]);
             System.out.println("Round-based protocol will have " +
                     numberOfParticipants + " participants.");
         }
@@ -79,11 +81,13 @@ public class RoundBasedProtocolGeneric extends Template {
         String initProcessVariables = StandardTranslatorData.localVariables.
                 getVariablesAsString("init",
                 LocalVariableMap.DECLARATIONS_WITHOUT_INITIALIZERS);
+        String processFunctions = StandardTranslatorData.getSpecificFunctions("Process");
         String processVariables = StandardTranslatorData.localVariables.
                 getVariablesAsString("Process",
                 LocalVariableMap.DECLARATIONS_WITHOUT_INITIALIZERS);
         setDynamicFileParameters("init_process.h", initProcessVariables);
-        setDynamicFileParameters("_process.h", processVariables);
+        setDynamicFileParameters("_process.h", processFunctions,
+                processVariables, numberOfParticipantsName);
         //Handle .cc files now
         initProcessVariables = StandardTranslatorData.localVariables.
                 getVariablesAsString("init",
@@ -104,9 +108,17 @@ public class RoundBasedProtocolGeneric extends Template {
                 "system_init").toString();
         setDynamicFileParameters("init_process.cc",
                 globalDeclarationsFromPROMELAModel, initProcessVariables,
-                systemEveryRoundCode, systemInitCode);
-        setDynamicFileParameters("_process.cc", processVariables,
-                computeMessageCode, stateTransitionCode);
+                numberOfParticipantsName, systemEveryRoundCode, systemInitCode);
+        
+        String externalDeclarations = StandardTranslatorData.getExternalDeclarations();
+        String messageVariable = StandardTranslatorData.getMessageVariable();
+        String computeMessageParameters = StandardTranslatorData.getParameters(
+                "compute_message");
+        setDynamicFileParameters("_process.cc", externalDeclarations,
+                processVariables,
+                messageVariable, numberOfParticipantsName,
+                computeMessageParameters, computeMessageCode,
+                stateTransitionCode);
         super.writeDynamicFiles();
     }
 
@@ -128,9 +140,30 @@ public class RoundBasedProtocolGeneric extends Template {
                 + "/templates/" + name + "/network.ned";
         String NEDFileContents = FileUtils.readFileToString(new File(
                 NEDTemplatePath));
+        if (numberOfParticipants < 0) {
+            System.err.println("Undefined number of participants.");
+            System.err.println("Correct this error by attaching a "
+                    + " /* @TemplateParameter(name=\"numberOfParticipants\") */");
+            System.err.println("annotated comment to a #define directive.");
+            System.exit(1);
+        }
         NEDFileContents = MessageFormat.format(NEDFileContents,
                 numberOfParticipants);
         FileUtils.writeStringToFile(new File(Options.outputDirectory + "/"
                     + "network.ned"), NEDFileContents);
+    }
+
+    @Override
+    public void checkForErrors() {
+        if (!usedBlocks.contains("generic_part")) {
+            System.err.println("The PROMELA model doesn't seem to contain a"
+                    + " generic part.");
+            System.err.println("Models using the round-based consensus"
+                    + " template are required to have a generic part"
+                    + " delimited by the following annotated comments:");
+            System.err.println("/* @BeginTemplateBlock(name=\"generic_part\") */");
+            System.err.println("/* @EndTemplateBlock */");
+            System.exit(1);
+        }
     }
 }

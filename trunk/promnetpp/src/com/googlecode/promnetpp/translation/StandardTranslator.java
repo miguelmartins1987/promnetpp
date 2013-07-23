@@ -20,6 +20,7 @@ import com.googlecode.promnetpp.utilities.IndentedStringWriter;
 import com.googlecode.promnetpp.utilities.IndentedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.List;
@@ -84,7 +85,16 @@ public class StandardTranslator implements Translator {
 
     @Override
     public void finish() {
-        System.out.println(StandardTranslatorData.localVariables);
+        if (template == null) {
+            System.err.println("No template specified!");
+            System.err.println("PROMNeT++ currently only supports PROMELA"
+                    + " models that follow the round-based consensus protocol"
+                    + " template.");
+            System.err.println("Make sure your model contains the following"
+                    + " annotated comment at the very beginning of the file:");
+            System.err.println("/* @UsesTemplate(name=\"round_based_protocol_generic\") */");
+            System.exit(1);
+        }
         String currentFileContents;
         try {
             //Write type definitions
@@ -138,6 +148,7 @@ public class StandardTranslator implements Translator {
                 new File(Options.outputDirectory + "/process_interface.cc"));
         //Template files
         if (template != null) {
+            template.checkForErrors();
             template.copyStaticFiles();
             template.writeDynamicFiles();
             template.writeMessageDefinitionFiles();
@@ -214,6 +225,13 @@ public class StandardTranslator implements Translator {
                                 "functionName");
                         Function function = functions.get(functionName);
                         translateFunction(function);
+                        if (currentChild.hasMultipleChildren()) {
+                            ASTNode functionParameters = currentChild.getFirstChild();
+                            StandardTranslatorData.addSpecificFunction(
+                                    functionName, functionParameters);
+                        } else {
+                            StandardTranslatorData.addSpecificFunction(functionName);
+                        }
                     }
                 } else if (mode == StandardTranslatorModes.EXTRACT_VARIABLES) {
                     if (currentChildType.equals("ProcessDefinition")
@@ -226,7 +244,6 @@ public class StandardTranslator implements Translator {
                                 currentChild.getLocalVariableDeclarations();
                         storeLocalVariableDeclarations(processName,
                                 localVariableDeclarations);
-                        //writeLocalVariableDeclarations(processName, localVariableDeclarations);
                     }
                 }
             }
@@ -320,17 +337,21 @@ public class StandardTranslator implements Translator {
             arrayCapacity = simpleDeclaration.getValueAsString("arrayCapacity");
         }
 
-        globalDeclarations.write(typeName + " " + identifier);
+        StringWriter writer = new StringWriter();
+        writer.write(typeName + " " + identifier);
         if (isArray) {
-            globalDeclarations.write("[");
-            globalDeclarations.write(arrayCapacity);
-            globalDeclarations.write("]");
+            writer.write("[");
+            writer.write(arrayCapacity);
+            writer.write("]");
         }
         if (simpleDeclaration.hasMultipleChildren()) {
             ASTNode assignmentValue = simpleDeclaration.getSecondChild();
-            globalDeclarations.write(" = " + assignmentValue.toCppExpression());
+            writer.write(" = " + assignmentValue.toCppExpression());
         }
-        globalDeclarations.write(";\n");
+        writer.write(";");
+        String fullDeclaration = writer.toString();
+        StandardTranslatorData.addExternalDeclaration(fullDeclaration);
+        globalDeclarations.write(fullDeclaration + "\n");
     }
 
     private void handleAnnotatedComment(String comment) {
@@ -701,14 +722,16 @@ public class StandardTranslator implements Translator {
 
     private void storeLocalVariableDeclarations(String processName,
             List<ASTNode> localVariableDeclarations) {
+        String typeName = null;
+        String variableName = null;
         for (ASTNode declaration : localVariableDeclarations) {
             if (declaration.getNodeName().equals("SimpleDeclaration")) {
-                String typeName = declaration.getTypeName();
-                String variableName = declaration.getName();
+                typeName = declaration.getTypeName();
+                variableName = declaration.getName();
                 StandardTranslatorData.localVariables.putVariable(processName,
                         typeName + " " + variableName);
             } else if (declaration.getNodeName().equals("MultiDeclaration")) {
-                String typeName = declaration.getTypeName();
+                typeName = declaration.getTypeName();
                 List<String> variableNames = (List<String>) declaration.getValue("names");
                 List<Integer> initializationValues = (List<Integer>) declaration.getValue("initializationValues");
                 int k = 1;
@@ -722,6 +745,10 @@ public class StandardTranslator implements Translator {
                     StandardTranslatorData.localVariables.putVariable(processName,
                             typeName + " " + variable);
                 }
+            }
+            //Treat "message" as a special type
+            if (typeName.equals("message")) {
+                StandardTranslatorData.setMessageVariable(variableName);
             }
         }
     }

@@ -27,7 +27,7 @@ Modifications were done on the specification provided on June 12 2013:
 #define ABORT 0
 
 /* Random number generation */
-int random = 1234;
+int random = -1234;
 #define next(r) (r * 16807) % 2147483647
 #define boolean(r) ((r >> 30) & 1)
 

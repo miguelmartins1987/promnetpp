@@ -5,15 +5,14 @@
 #include "message_m.h"
 #include <omnetpp.h>
 
-extern process_state state[];
-extern int round_id;
+{0}
 
 void Process::initialize() '{'
     ProcessInterface::initialize();
     _pid = getIndex() + 1;
     received_message_count = 0;
     //Variable initialization
-{0}
+{1}
 '}'
 
 void Process::handleMessage(cMessage* msg) '{'
@@ -32,8 +31,8 @@ void Process::handleMessage(cMessage* msg) '{'
                 begin_round();
             '}'
             if (step == 1) '{'
-                compute_message();
-                send_to_all();
+                compute_message({2});
+                send_to_all({2});
             '}'
             if (step == 2) '{'
                 state_transition();
@@ -78,7 +77,7 @@ void Process::enqueue_message(cMessage* msg) '{'
     int sender_pid = sender->_pid;
     received_messages[sender_pid - 1] = message;
     ++received_message_count;
-    if (received_message_count == NUMBER_OF_PROCESSES) '{'
+    if (received_message_count == {3}) '{'
         ++step_map["main"];
         scheduleAt(simTime(), empty_message);
     '}'
@@ -90,17 +89,17 @@ void Process::begin_round() '{'
 '}'
 
 void Process::end_round() '{'
-    for (int i = 0; i < NUMBER_OF_PROCESSES; ++i) '{'
+    for (int i = 0; i < {3}; ++i) '{'
         delete received_messages[i];
     '}'
     received_message_count = 0;
     send(finished_message->dup(), "init_gate$o");
 '}'
 
-void Process::send_to_all() '{'
+void Process::send_to_all(message_t& msg) '{'
     Message* message = new Message();
-    message->set_message(_message);
-    for (i = 1; i <= NUMBER_OF_PROCESSES; ++i) '{'
+    message->set_message(msg);
+    for (i = 1; i <= {3}; ++i) '{'
         if (i == _pid) '{'
             scheduleAt(simTime(), message->dup());
         '}' else '{'
@@ -110,16 +109,16 @@ void Process::send_to_all() '{'
     delete message;
 '}'
 
-void Process::receive(byte id) '{'
+void Process::receive(message_t& msg, byte id) '{'
     Message* message = received_messages[id];
-    _message = message->get_message();
+    msg = message->get_message();
 '}'
 
 //Specific functions
-void Process::compute_message() '{'
-{1}
+void Process::compute_message({4}) '{'
+{5}
 '}'
 
 void Process::state_transition() '{'
-{2}
+{6}
 '}'

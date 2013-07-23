@@ -28,8 +28,8 @@ void InitProcess::handleMessage(cMessage* msg) '{'
     '}' else '{'
         if (strcmp(msg->getName(), "ready") == 0) '{'
             ++number_of_processes_in_current_round;
-            if (number_of_processes_in_current_round == NUMBER_OF_PROCESSES) '{'
-                for (i = 0; i < NUMBER_OF_PROCESSES; ++i) '{'
+            if (number_of_processes_in_current_round == {2}) '{'
+                for (i = 0; i < {2}; ++i) '{'
                     send(new cMessage("begin"), "process_gate$o", i);
                 '}'
             '}'
@@ -48,21 +48,21 @@ void InitProcess::finish() '{'
 '}'
 
 void InitProcess::do_new_round() '{'
-    for (i = 0; i < NUMBER_OF_PROCESSES; ++i) '{'
+    for (i = 0; i < {2}; ++i) '{'
         send(new cMessage("new_round"), "process_gate$o", i);
     '}'
 '}'
 
 void InitProcess::run_processes() '{'
-    for (i = 0; i < NUMBER_OF_PROCESSES; ++i) '{'
+    for (i = 0; i < {2}; ++i) '{'
         send(new cMessage("init"), "process_gate$o", i);
     '}'
 '}'
 
 void InitProcess::system_every_round() '{'
-{2}
+{3}
 '}'
 
 void InitProcess::system_init() '{'
-{3}
+{4}
 '}'
