@@ -106,7 +106,8 @@ inline system_init() {
         if
         :: boolean(rnd) -> j++
         :: else -> skip
-        fi
+        fi;
+        printf("MSC: P%d has initial value x=%d\n", i+1, state[i].local_value)
     }
 }
 
@@ -161,7 +162,6 @@ inline receive(_message, id) {
 proctype Process() {
     message _message;
     byte i, j, k, l;
-    printf("MSC: P%d has initial value x=%d\n", _pid, my_state.local_value);
     do
     :: begin_round();
         compute_message(_message);
