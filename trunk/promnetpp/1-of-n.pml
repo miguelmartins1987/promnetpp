@@ -136,7 +136,8 @@ inline system_init() {
         :: boolean(rnd) -> j++
         :: else -> skip
         fi;
-        state[i].view[i] = true
+        state[i].view[i] = true;
+        printf("MSC: P%d has initial value x=%d\n", i+1, state[i].local_value)
     }
 }
 
@@ -200,7 +201,6 @@ proctype Process() {
     byte i, j;
     byte round;
     bool check;
-    printf("MSC: P%d has initial value x=%d\n", _pid, my_state.local_value);
     do
     :: begin_round();
         compute_message(_message);
