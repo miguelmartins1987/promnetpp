@@ -27,7 +27,7 @@ Modifications were done on the specification provided on June 12 2013:
 #define ABORT 0
 
 /* Random number generation */
-int random = -1234;
+int rnd = -1234;
 #define next(r) (r * 16807) % 2147483647
 #define boolean(r) ((r >> 30) & 1)
 
@@ -131,9 +131,9 @@ inline system_init() {
     j = 1;
     for(i : 0..(NUMBER_OF_PROCESSES-1)) {
         state[i].local_value = j;
-        random = next(random);
+        rnd = next(rnd);
         if
-        :: boolean(random) -> j++
+        :: boolean(rnd) -> j++
         :: else -> skip
         fi;
         state[i].view[i] = true
@@ -143,7 +143,7 @@ inline system_init() {
 inline system_every_round() {
     round_id++;
     printf("MSC: new round, id=%d\n", round_id);
-    printf("random=%d\n", random);
+    printf("rnd=%d\n", rnd);
 
     if
     :: remaining_asynchronous_rounds == 0 -> synchronous = true
@@ -155,8 +155,8 @@ inline system_every_round() {
             if
             :: synchronous || i == j -> state[i].received_message[j] = true
             :: else ->
-                random = next(random);
-                state[i].received_message[j] = boolean(random)
+                rnd = next(rnd);
+                state[i].received_message[j] = boolean(rnd)
             fi
         }
     }
