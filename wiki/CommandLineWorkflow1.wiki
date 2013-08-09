@@ -22,10 +22,15 @@ Like many Java applications, PROMNeT++ is distributed, in binary form, as a JAR 
   # Navigate to the folder you just created and copy the PROMELA model (typically, a file with a _.pml_ extension) that is to be submitted for translation to it. For this guide, said model is _!NewOneThirdRule.pml_<br><br>https://promnetpp.googlecode.com/svn/media/CopyPMLFile.png
   # Open a command prompt/shell/terminal at your current location. In Windows Vista and above, this can be easily done by holding down either of the _Shift_ keys and choosing the _Open command window here_ option.
   # Type in (or copy and paste) the following commands:
+    * For Windows users:
 {{{
 set PROMNETPP_HOME=C:\promnetpp
-copy "%PROMNETPP_HOME%\default-configuration.xml" .
 java -enableassertions -jar "%PROMNETPP_HOME%\promnetpp.jar" NewOneThirdRule.pml
+}}}
+    * For Linux/OS X users:
+{{{
+export PROMNETPP_HOME=/Users/yourusername/promnetpp
+java -enableassertions -jar $PROMNETPP_HOME/promnetpp.jar NewOneThirdRule.pml
 }}}
   # Make sure the translation process was successful, meaning that:
     * No errors were reported.
