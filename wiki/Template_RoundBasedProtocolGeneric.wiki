@@ -36,14 +36,6 @@ inline system_every_round() {
     /* Code for system_every_round */
 }
 
-inline send_to_all(_message) {
-    /* Code for send_to_all */
-}
-
-inline receive(_message, id) {
-    /* Code for receive */
-}
-
 /* @BeginTemplateBlock(name="generic_part") */
 
 /* Everything inside this template block is part of the template's GENERIC PART. */
@@ -56,8 +48,16 @@ inline end_round() {
     /* Code for end_round*/
 }
 
+inline send_to_all(_message) {
+    /* Code for send_to_all */
+}
+
 inline wait_to_receive() {
     /* Code for wait_to_receive */
+}
+
+inline receive(_message, id) {
+    /* Code for receive */
 }
 
 proctype Process() {
