@@ -1,0 +1,60 @@
+# Introduction #
+
+If you're a researcher (or perhaps my internship's supervisor ![https://promnetpp.googlecode.com/svn/media/smiley-face-md-16px.png](https://promnetpp.googlecode.com/svn/media/smiley-face-md-16px.png)), then you might not care about OMNeT++ at all, but are interested instead in either analyzing how PROMNeT++ generates code and/or want to reuse said code. This is the case for a number of researchers out there, who would like to run the code in real-time systems.
+
+This Wiki page is to be regarded as a guide to perform a PROMELA to C++ translation via the command line, **but it will not make use of OMNeT++ at all.**
+
+# Prerequisites for this Workflow #
+
+  * PROMNeT++ requires Java 6 or higher to function. Install a JRE on your system, if none is present.
+  * PROMNeT++ (its JAR file and any other files that come with its standard distribution) must have been extracted to a directory of your choice; this guide will assume _C:\promnetpp_ as said directory.
+    * If you haven't done so already, head over to the <a href='https://code.google.com/p/promnetpp/downloads/list'><i>Downloads</i></a> page and download the latest PROMNeT++ release (PROMNeT++ Alpha 3 as of this guide's time of writing).
+    * The screenshot below illustrates the contents of PROMNeT++'s standard distribution.<br><br><img src='https://promnetpp.googlecode.com/svn/media/Distribution1.png' />
+</li></ul>  * <a href='http://spinroot.com/'>Spin</a> must have been compiled from source (where applicable) and installed to a directory of your choice. The _default-configuration.xml_ file that's packaged with PROMNeT++ assumes that Spin is installed under _C:/spin_, which is a Windows directory. However, since PROMNeT++ is cross-platform (as is Spin), Linux and OS X users can also use their directory of choice.
+    * This guide covers how this configuration file should be edited in the next section.
+
+# Steps #
+
+  1. Assuming PROMNeT++ has been extracted to a directory of your choice, as per the above prerequisites, you (the user) must, first and foremost, _edit the default-configuration.xml file that's packaged with the distribution_, by using a text editor. We'll be editing the option named "spinHome", so that PROMNeT++ knows where to find Spin (for verification purposes).
+    * There should be a line in the configuration file similar to
+```
+<simpleOption name="spinHome" value="C:/spin" />
+```
+    * The rule of thumb is: **"spinHome" must point to the directory where Spin is installed, and in particular, the Spin executable, regardless of whether said executable was obtained by compiling Spin from source or not.**
+    * If you're using Linux or OS X, for example, it could look something like this:
+```
+<simpleOption name="spinHome" value="/Users/yourusername/Spin" />
+```
+    * Furthermore, **it is important that the value does not contain a trailing forward slash ("/")**, which means:
+      * Wrong!
+```
+<simpleOption name="spinHome" value="/Users/yourusername/Spin/" />
+```
+      * Right!
+```
+<simpleOption name="spinHome" value="/Users/yourusername/Spin" />
+```
+    * Remember to save any changes to the file when done.
+  1. Once you have completed the above step, you must then choose a directory for both your PROMELA model and your translated files. This can be any directory of your choice, _just as long as you have the adequate permissions to read from and write files to that directory_. We will refer to this directory as the **PROMNeT++ workspace**, or **workspace** for short. For this guide, I am using a folder called "my promnetpp workspace" under my C: drive, in Windows (i.e. C:\my promnetpp workspace).<br><br><img src='https://promnetpp.googlecode.com/svn/media/MyPromnetppWorkspaceEmpty.png' />
+<ol><li>Copy your PROMELA model and the <i>default-configuration.xml</i> file that comes with PROMNeT++ to the workspace. We'll be using the <i>NewOneThirdRule.pml</i> model packaged with the distribution.<br><br><img src='https://promnetpp.googlecode.com/svn/media/MyPromnetppWorkspace.png' />
+</li><li>Open a command prompt/shell/terminal at the workspace. In Windows Vista and above, this can be easily done by holding down either of the <i>Shift</i> keys and choosing the <i>Open command window here</i> option.<br>
+<ul><li>You may also do this in Windows XP, but it requires the installation of a <i>Command Prompt Here</i> shortcut/powertoy.<br>
+</li><li>Similar shortcuts exist for Linux and OS X, but under the name <i>Open terminal here</i> instead.<br>
+</li><li>Alternatively, you may open a terminal yourself and manually navigate to the workspace directory via multiple "cd" commands.<br>
+</li></ul></li><li>Once your current directory is set to your workspace's directory, type in (or copy and paste) the following commands, altering them accordingly when necessary:<br>
+<ul><li>For Windows users:<br>
+<pre><code>set PROMNETPP_HOME=C:\promnetpp<br>
+java -enableassertions -jar "%PROMNETPP_HOME%\promnetpp.jar" NewOneThirdRule.pml<br>
+</code></pre>
+</li><li>For Linux/OS X users:<br>
+<pre><code>export PROMNETPP_HOME=/Users/yourusername/promnetpp<br>
+java -enableassertions -jar $PROMNETPP_HOME/promnetpp.jar NewOneThirdRule.pml<br>
+</code></pre>
+</li><li>Note that the <i>-enableassertions</i> (or <i>-ea</i>) switch <i>must be present</i>, as PROMNeT++ uses Java assert statements at several points during execution.<br>
+</li></ul></li><li>Wait for the tool to finish its verification/translation procedure.<br>
+</li><li>If no errors occurred, you should now be in possession of the generated source code files, as illustrated in the screenshot below.<br><br><img src='https://promnetpp.googlecode.com/svn/media/MyPromnetppWorkspaceFull.png' /></li></ol>
+
+<h1>Final remarks/Troubleshooting</h1>
+
+<ul><li>If the verification/translation procedure did not complete without errors, paying close attention to PROMNeT++'s output should help you correct the problem(s). If not, PROMNeT++ also keeps a log file, named <i>promnetpp-log.xml</i>, which is also useful for troubleshooting purposes.<br>
+</li><li><b>It is entirely up to you, the user, to determine how you will use the generated source code files.</b> Once you're in possession of them, you're free to look at, or even copy portions of the code for your own personal use.

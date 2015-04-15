@@ -1,0 +1,31 @@
+# Introduction #
+
+PROMNeT++ is coded so that a fair amount of warnings and errors are printed to stderr. It also maintains a log file ("promnetpp-log.xml") that may also be used for identifying any problems that may occur. This page is meant to be a list of issues (warnings/errors) that PROMNeT++ users might encounter, with the appropriate descriptions and fixes (where applicable).
+
+# Warnings #
+## "User has chosen to skip the verification procedure" ##
+### Cause ###
+
+This warning occurs when the _skipVerification_ option is set to _"true"_ in the configuration file used by PROMNeT++. Note that this is, in fact, the case with the _default-configuration.xml_ file packaged with PROMNeT++, as shown below:
+
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<promnetppConfiguration>
+    <simpleOption name="outputDirectory" value="." />
+    <simpleOption name="spinHome" value="C:/spin" />
+    <simpleOption name="skipVerification" value="true" />
+</promnetppConfiguration>
+```
+
+### How to suppress ###
+To suppress this warning, change the value of _skipVerification_ to _"false"_ instead. This will force PROMNeT++ to use Spin to verify your model prior to translating it to C++ code.
+
+Also, don't forget that you must ensure that _spinHome_ points to the location of your Spin executable.
+
+### Other remarks ###
+
+  * Depending on the complexity of the PROMELA model you're trying to translate and/or your machine's specifications, you might not be able to perform an error-free verification. While it is recommended that you don't skip PROMNeT++'s verification phase, you might find yourself unable to proceed unless you do so.
+
+  * Keep in mind that **PROMNeT++ works under the assumption that your PROMELA model is correct in all aspects (including syntax and semantics)**, meaning that, if you skip the verification phase, you're doing so at the risk of obtaining inaccurate C++ code (if any).
+
+  * You may also choose to _verify your model manually before submitting it to PROMNeT++ for translation._ If you're absolutely sure that your model is, indeed, correct, then feel free to ignore this warning.

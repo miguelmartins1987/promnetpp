@@ -1,0 +1,115 @@
+# Basic template data #
+  * **Name:** round\_based\_protocol\_generic
+  * **Rationale:** Template for Round-Based Consensus Protocols.
+
+# Basic structure #
+
+```
+/*
+ * Copyright (c) <year>, <name of copyright holder>
+ * Use is subject to license terms.
+ *
+ * Note that this comment is ENTIRELY OPTIONAL and is merely here for
+ * the purpose of stating any licensing terms, if applicable.
+ */
+
+/* @UsesTemplate(name="round_based_protocol_generic") */
+/* @TemplateParameter(name="numberOfParticipants") */
+#define N 3
+
+inline compute_message(_message) {
+    /* Code for compute_message */
+}
+
+inline state_transition() {
+    /* Code for state_transition */
+}
+
+inline system_init() {
+    /* Code for system_init */
+}
+
+inline system_every_round() {
+    /* Code for system_every_round */
+}
+
+/* @BeginTemplateBlock(name="generic_part") */
+
+/* Everything inside this template block is part of the template's GENERIC PART. */
+
+inline begin_round() {
+    /* Code for begin_round */
+}
+
+inline end_round() {
+    /* Code for end_round*/
+}
+
+inline send_to_all(_message) {
+    /* Code for send_to_all */
+}
+
+inline wait_to_receive() {
+    /* Code for wait_to_receive */
+}
+
+inline receive(_message, id) {
+    /* Code for receive */
+}
+
+proctype Process() {
+    /* Variable declarations go here. Below is a typical example. */
+    message _message;
+    byte i, j;
+    
+    /* Processes are STRICTLY REQUIRED to call the functions below in the order they're shown: begin_round,
+compute_message, send_to_all, wait_to_receive, state_transition, end_round */
+
+    do
+    :: begin_round();
+        compute_message(_message);
+        send_to_all(_message);
+        wait_to_receive();
+        state_transition();
+        end_round()
+    od	
+}
+
+init {
+    /* Variable declarations go here. Below is a typical example. */
+    byte i, j;
+    bool synchronous = false;
+    
+    /* system_init MUST be init's first called procedure */
+    system_init();
+
+    /* Required, so that the actual processes run */
+    atomic {
+        for(i : 1..(NUMBER_OF_PROCESSES)) {
+            run Process()
+        }
+    }
+
+    /* Required to synchronize processes between rounds.
+Below is Raul Barbosa's own implementation, that synchronizes processes via token passing (byte token;) */
+    do
+    :: (token == 0);
+        system_every_round();
+        token = NUMBER_OF_PROCESSES;
+        (token == 0);
+        token = NUMBER_OF_PROCESSES
+    od
+}
+/* @EndTemplateBlock */
+```
+
+# Template functions #
+| **Function name** | **Caller** | **Description** |
+|:------------------|:-----------|:----------------|
+| begin\_round | Process | Ensures, via synchronization, that all processes are ready to start a new round. |
+| compute\_message | Process | During each round, each process calls this method to compute (i.e. alter the contents of, whenever necessary) its own message object. |
+| send\_to\_all | Process | Sends the process' own message to all processes in the system (including itself, but excluding the init process). |
+| wait\_to\_receive | Process | Waits for all messages to be sent, before calling _receive_ next. |
+| state\_transition | Process | Performs the main computation(s) before ending the current round, usually by taking messages from the other processes and comparing them to its own; typically calls receive in a conditional loop; any consensus-related decisions are made in this function too. |
+| end\_round | Process | Performs all the required actions to declare that a particular round is over. This includes any action required so that all processes can be synchronized before calling _begin\_round_ once again. |
+| system\_every\_round | Init process | Executes once before each round. Used to set the system's state for a particular round. |
