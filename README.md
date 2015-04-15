@@ -1,4 +1,4 @@
-# promnetpp
+# PROMNeT++
 Automatically exported from code.google.com/p/promnetpp
 
 At its core, this project consists of a Java-powered tool that parses and translates PROMELA (http://spinroot.com/) code, to C++ code that is intended to be runnable under OMNeT++ (http://www.omnetpp.org/).
